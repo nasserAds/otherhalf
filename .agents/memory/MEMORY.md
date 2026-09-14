@@ -1,1 +1,2 @@
 - [Cross-platform uploaded dependencies](cross-platform-uploaded-dependencies.md) — archives can include native binaries generated for another OS; rebuild native modules and regenerate Prisma before starting.
+- [Realtime room protocol](realtime-room-protocol.md) — voice peers join only after mic permission; room joins also hydrate persisted chat history.

@@ -48,7 +48,7 @@ async function bootstrap() {
     app.useGlobalFilters(new filters_1.HttpExceptionFilter());
     const port = config.get('PORT', 4000);
     await app.listen(port);
-    console.log(`Jadal backend listening on ${httpsOptions ? 'https' : 'http'}://localhost:${port}`);
+    console.log(`OtherHalf backend listening on ${httpsOptions ? 'https' : 'http'}://localhost:${port}`);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

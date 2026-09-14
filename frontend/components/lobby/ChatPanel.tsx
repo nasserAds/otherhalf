@@ -55,6 +55,13 @@ export function ChatPanel({ messages, onSend }: ChatPanelProps) {
           placeholder="اكتب رسالة..."
           className="bg-transparent flex-1 outline-none text-fg-100 placeholder:text-fg-500"
         />
+        <button
+          type="submit"
+          disabled={!draft.trim()}
+          className="rounded-pill bg-mint px-3 py-1.5 font-bold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          إرسال
+        </button>
       </form>
     </div>
   );

@@ -12,6 +12,7 @@ interface RoomState {
   room: Room | null;
   chat: ChatEntry[];
   setRoom: (room: Room) => void;
+  setChat: (entries: ChatEntry[]) => void;
   updatePlayer: (userId: string, patch: Partial<RoomPlayer>) => void;
   addChatMessage: (entry: ChatEntry) => void;
   clear: () => void;
@@ -31,6 +32,8 @@ export const useRoomStore = create<RoomState>((set) => ({
         }),
       },
     }),
+
+  setChat: (entries) => set({ chat: entries.slice(-50) }),
 
   updatePlayer: (userId, patch) =>
     set((state) => {

@@ -1,7 +1,7 @@
-# جدال (Jadal) — a multi-game platform
+# OtherHalf — a multi-game platform
 
 Started as a single browser multiplayer debate game; restructured as a small
-game platform: **Login → Games Hub → pick a game → play**. جدال (the debate
+game platform: **Login → Games Hub → pick a game → play**. OtherHalf (the debate
 game) is the first title; the hub is built so adding a second is additive,
 not a rewrite (see `frontend/lib/games.ts`).
 
@@ -10,9 +10,9 @@ Full stack: Next.js frontend + NestJS/Prisma/PostgreSQL/Socket.IO backend.
 ## Structure
 
 ```
-jadal-project/
+otherhalf-project/
 ├─ backend/     NestJS API + Socket.IO gateways + Prisma schema
-├─ frontend/    Next.js app — Games Hub, جدال (rooms/lobby/game), voice chat
+├─ frontend/    Next.js app — Games Hub, OtherHalf (rooms/lobby/game), voice chat
 └─ docs/        Phase 1 planning doc + Phase 2 interactive design mockup
 ```
 
@@ -75,7 +75,7 @@ own README, short version here:
 /  (splash)
  → /login or /register → /avatar
  → /menu                          Games Hub — cover card per game
-    → /games/jadal                جدال's own menu (Create/Join Room)
+    → /games/otherhalf            OtherHalf's own menu (Create/Join Room)
        → /room/create             → /room/[code]/lobby → /room/[code]/game
        → /room/join               → /room/[code]/lobby → /room/[code]/game
     → /games/<future-slug>        placeholder for the next game
@@ -102,7 +102,7 @@ called it right.
 | 4 — Backend | ✅ `backend/` |
 | 5 — Frontend | ✅ `frontend/` |
 | 6 — Realtime | ✅ presence/lobby/game/votes/results + voice chat + in-game chat |
-| Games Hub | ✅ platform restructure — جدال is now one game among a growing list |
+| Games Hub | ✅ platform restructure — OtherHalf is now one game among a growing list |
 | 7 — Polish | ✅ synthesized sound effects, crossfade transitions, loading states, memoization, accessibility pass |
 | Gameplay depth | ✅ pre-match topic voting + audience predictions with a Winner-screen payoff |
 | Bugfix pass | ✅ mic, host transfer/room cleanup, login, chat visibility, host controls — see above |
@@ -123,7 +123,7 @@ called it right.
 - **Voice chat is mesh WebRTC**, fine for small groups, no TURN server
   configured (STUN only) — some users behind strict NATs still won't
   connect; that's a separate, known gap from the bug just fixed.
-- **Only one real game exists** (جدال) — the hub shows two "coming soon"
+- **Only one real game exists** (OtherHalf) — the hub shows two "coming soon"
   placeholder covers to establish the platform shape.
 - **No music track shipped** — the music-volume slider is wired and
   persisted but silent until an actual track is added.

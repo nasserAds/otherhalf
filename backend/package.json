@@ -1,7 +1,7 @@
 {
-  "name": "jadal-backend",
+  "name": "otherhalf-backend",
   "version": "0.1.0",
-  "description": "Backend for Jadal - Browser Multiplayer Debate Game",
+  "description": "Backend for OtherHalf - Browser Multiplayer Debate Game",
   "private": true,
   "scripts": {
     "build": "nest build",

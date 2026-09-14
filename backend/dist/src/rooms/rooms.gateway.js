@@ -97,6 +97,14 @@ let RoomsGateway = class RoomsGateway {
             username: user.username,
         });
         this.server.to(room.id).emit(socket_events_1.SocketEvents.ROOM_STATE_SYNC, room);
+        const recentMessages = await this.roomsService.recentChatMessages(room.id);
+        client.emit(socket_events_1.SocketEvents.LOBBY_CHAT_HISTORY, recentMessages.map((message) => ({
+            id: message.id,
+            userId: message.userId,
+            username: message.user.username,
+            content: message.content,
+            createdAt: message.createdAt,
+        })));
         return room;
     }
     async onRoomLeave(client) {

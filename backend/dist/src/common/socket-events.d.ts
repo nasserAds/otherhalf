@@ -11,6 +11,7 @@ export declare const SocketEvents: {
     readonly LOBBY_PLAYER_READY_CHANGED: "lobby:playerReadyChanged";
     readonly LOBBY_HOST_TRANSFERRED: "lobby:hostTransferred";
     readonly LOBBY_CHAT_MESSAGE: "lobby:chatMessage";
+    readonly LOBBY_CHAT_HISTORY: "lobby:chatHistory";
     readonly LOBBY_START_MATCH: "lobby:startMatch";
     readonly LOBBY_KICK_PLAYER: "lobby:kickPlayer";
     readonly LOBBY_KICKED: "lobby:kicked";

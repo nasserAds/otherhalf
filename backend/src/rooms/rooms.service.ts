@@ -225,6 +225,23 @@ export class RoomsService {
     return room;
   }
 
+  async recentChatMessages(roomId: string, take = 50) {
+    const messages = await this.prisma.chatMessage.findMany({
+      where: { roomId },
+      orderBy: { createdAt: 'desc' },
+      take,
+      select: {
+        id: true,
+        userId: true,
+        content: true,
+        createdAt: true,
+        user: { select: { username: true } },
+      },
+    });
+
+    return messages.reverse();
+  }
+
   async setRoomStatus(roomId: string, status: RoomStatus) {
     return this.prisma.room.update({ where: { id: roomId }, data: { status } });
   }

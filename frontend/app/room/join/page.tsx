@@ -46,7 +46,7 @@ export default function JoinRoomPage() {
   return (
     <PageTransition>
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/games/jadal" className="text-fg-100" aria-label="العودة"><BackIcon /></Link>
+        <Link href="/games/otherhalf" className="text-fg-100" aria-label="العودة"><BackIcon /></Link>
         <h1 className="text-xl font-extrabold">الانضمام لغرفة</h1>
       </div>
 

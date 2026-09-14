@@ -119,6 +119,17 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Full state resync for everyone keeps all clients aligned after joins,
     // reconnects, and device changes without asking clients to re-join.
     this.server.to(room.id).emit(SocketEvents.ROOM_STATE_SYNC, room);
+    const recentMessages = await this.roomsService.recentChatMessages(room.id);
+    client.emit(
+      SocketEvents.LOBBY_CHAT_HISTORY,
+      recentMessages.map((message) => ({
+        id: message.id,
+        userId: message.userId,
+        username: message.user.username,
+        content: message.content,
+        createdAt: message.createdAt,
+      })),
+    );
     return room;
   }
 

@@ -33,7 +33,7 @@ export default function LobbyPage() {
 
   const { toggleReady, sendChat, startMatch, leaveRoom, kickPlayer, updateSettings } = useRoomSocket(params.code);
   useGameSocket(); // populates useGameStore as soon as game:matchStarted arrives
-  const { micOn, micStates, remoteStreams, toggleMic } = useVoiceChatContext();
+  const { micOn, micError, micStates, remoteStreams, toggleMic } = useVoiceChatContext();
 
   const me = room?.players.find((p) => p.userId === user?.id);
   const isHost = me?.role === 'HOST';
@@ -79,7 +79,7 @@ export default function LobbyPage() {
   // relying on the ~30s disconnect grace period to eventually notice.
   function handleBack() {
     leaveRoom();
-    router.push('/games/jadal');
+    router.push('/games/otherhalf');
   }
 
   function handleKick(userId: string) {
@@ -124,8 +124,9 @@ export default function LobbyPage() {
       <PlayerList players={room.players} micStates={micStates} canKick={isHost} onKick={handleKick} />
 
       {voiceEnabled && (
-        <div className="self-center mb-3">
+        <div className="self-center mb-3 flex flex-col items-center gap-2">
           <MicButton active={micOn} onClick={handleMicToggle} />
+          {micError && <p className="max-w-[280px] text-center text-xs font-bold text-amber">{micError}</p>}
         </div>
       )}
 

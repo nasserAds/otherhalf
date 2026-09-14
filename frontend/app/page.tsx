@@ -33,9 +33,9 @@ export default function SplashPage() {
     <div className="flex flex-col items-center justify-center min-h-[100dvh] gap-6">
       <div className="relative w-[140px] h-[140px] rounded-full border-[3px] border-mint flex items-center justify-center animate-breathe">
         <span className="absolute inset-[-3px] rounded-full border-[3px] border-transparent border-t-amber border-l-amber animate-spin_slow" />
-        <span className="text-mint font-black text-[42px]">ج</span>
+        <span className="text-mint font-black text-[42px]">O</span>
       </div>
-      <span className="text-mint font-black text-[30px]">جدال</span>
+      <span className="text-mint font-black text-[30px]">OtherHalf</span>
       <div className="flex gap-1.5">
         {[0, 1, 2].map((i) => (
           <motion.span

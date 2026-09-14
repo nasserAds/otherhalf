@@ -1,4 +1,4 @@
-# Jadal Backend — Phase 4
+# OtherHalf Backend — Phase 4
 
 NestJS + Prisma + PostgreSQL + Socket.IO backend for the debate game.
 

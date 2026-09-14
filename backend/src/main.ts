@@ -60,6 +60,6 @@ async function bootstrap() {
 
   const port = config.get<number>('PORT', 4000);
   await app.listen(port);
-  console.log(`Jadal backend listening on ${httpsOptions ? 'https' : 'http'}://localhost:${port}`);
+  console.log(`OtherHalf backend listening on ${httpsOptions ? 'https' : 'http'}://localhost:${port}`);
 }
 bootstrap();

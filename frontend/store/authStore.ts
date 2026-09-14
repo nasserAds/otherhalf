@@ -12,6 +12,10 @@ interface AuthState {
 // localStorage is fine here — this is real app code, not a Claude Artifacts
 // preview sandbox (which disallows browser storage).
 const STORAGE_KEYS = {
+  username: 'otherhalf_username',
+  deviceSecret: 'otherhalf_device_secret',
+};
+const LEGACY_STORAGE_KEYS = {
   username: 'jadal_username',
   deviceSecret: 'jadal_device_secret',
 };
@@ -48,8 +52,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 export function getStoredCredentials(): { username: string; deviceSecret: string } | null {
   if (typeof window === 'undefined') return null;
-  const username = window.localStorage.getItem(STORAGE_KEYS.username);
-  const deviceSecret = window.localStorage.getItem(STORAGE_KEYS.deviceSecret);
+  const username =
+    window.localStorage.getItem(STORAGE_KEYS.username) ??
+    window.localStorage.getItem(LEGACY_STORAGE_KEYS.username);
+  const deviceSecret =
+    window.localStorage.getItem(STORAGE_KEYS.deviceSecret) ??
+    window.localStorage.getItem(LEGACY_STORAGE_KEYS.deviceSecret);
   if (!username || !deviceSecret) return null;
+  window.localStorage.setItem(STORAGE_KEYS.username, username);
+  window.localStorage.setItem(STORAGE_KEYS.deviceSecret, deviceSecret);
   return { username, deviceSecret };
 }

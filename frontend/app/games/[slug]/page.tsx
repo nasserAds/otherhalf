@@ -21,18 +21,18 @@ export default function GameLandingPage() {
   // Create/Join Room screen. As more games are added, branch on
   // `params.slug` here to render each game's own landing content instead
   // of growing this file into a single giant switch.
-  if (params.slug === 'jadal') return <JadalMenu />;
+  if (params.slug === 'otherhalf') return <OtherHalfMenu />;
 
   return null;
 }
 
-function JadalMenu() {
+function OtherHalfMenu() {
   return (
     <PageTransition>
       <div className="flex items-center gap-3 mb-8">
         <Link href="/menu" className="text-fg-100"><BackIcon /></Link>
         <div>
-          <h1 className="text-xl font-extrabold leading-tight">جدال</h1>
+          <h1 className="text-xl font-extrabold leading-tight">OtherHalf</h1>
           <p className="text-xs text-fg-500">مناظرات جماعية مباشرة</p>
         </div>
       </div>

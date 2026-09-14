@@ -8,12 +8,15 @@ interface SettingsState {
   hydrate: () => void;
 }
 
-const STORAGE_KEY = 'jadal_settings';
+const STORAGE_KEY = 'otherhalf_settings';
+const LEGACY_STORAGE_KEY = 'jadal_settings';
 
 function load(): { musicVolume: number; fxVolume: number } {
   if (typeof window === 'undefined') return { musicVolume: 70, fxVolume: 85 };
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw =
+      window.localStorage.getItem(STORAGE_KEY) ??
+      window.localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) return { musicVolume: 70, fxVolume: 85 };
     return JSON.parse(raw);
   } catch {

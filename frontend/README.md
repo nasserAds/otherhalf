@@ -1,4 +1,4 @@
-# Jadal Frontend — Phase 6
+# OtherHalf Frontend — Phase 6
 
 Next.js (App Router) + TypeScript + Tailwind + Framer Motion, matching the
 Phase 2 design system exactly (same color tokens, radii, shadows, and the
@@ -23,11 +23,11 @@ Requires the Phase 4 backend running (default `http://localhost:4000`).
 | `/login` | Login |
 | `/register` → `/avatar` | Register (2 steps: username, then avatar) |
 | `/menu` | **Games Hub** — cover cards for every game (see `lib/games.ts`) |
-| `/games/[slug]` | Per-game landing menu — `jadal` shows Create/Join Room |
-| `/room/create` | Create Room (جدال) |
-| `/room/join` | Join Room (جدال) |
-| `/room/[code]/lobby` | Lobby (جدال) |
-| `/room/[code]/game` | Game / Voting / Winner (جدال) |
+| `/games/[slug]` | Per-game landing menu — `otherhalf` shows Create/Join Room |
+| `/room/create` | Create Room (OtherHalf) |
+| `/room/join` | Join Room (OtherHalf) |
+| `/room/[code]/lobby` | Lobby (OtherHalf) |
+| `/room/[code]/game` | Game / Voting / Winner (OtherHalf) |
 | `/settings` | Settings |
 
 ### Adding a second game
@@ -37,10 +37,10 @@ The app is now structured as a small platform, not a single game:
 1. Add an entry to `lib/games.ts` (slug, title, tagline, player count).
 2. It automatically appears as a cover card on the Games Hub.
 3. Build out `app/games/[slug]/page.tsx`'s branch for that slug (currently
-   only `jadal` is implemented; anything else redirects back to the hub).
+   only `otherhalf` is implemented; anything else redirects back to the hub).
 4. Give the new game its own routes/components under `app/` and
    `components/`, following the same pattern as `room/`, `components/game/`,
-   `components/lobby/` — none of that is jadal-specific by name, but nothing
+   `components/lobby/` — none of that is OtherHalf-specific by name, but nothing
    currently enforces namespacing either, so keep new games' files clearly
    named to avoid collisions as more are added.
 

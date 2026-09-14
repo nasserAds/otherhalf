@@ -22,10 +22,10 @@ export declare class GameService {
         id: string;
         matchId: string;
         type: import(".prisma/client").$Enums.RoundType;
+        content: string | null;
         startedAt: Date;
         endedAt: Date | null;
         speakerId: string | null;
-        content: string | null;
         durationSeconds: number;
     }>;
     private buildSteps;

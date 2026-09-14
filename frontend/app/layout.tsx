@@ -4,7 +4,7 @@ import { MotionProvider } from '@/components/providers/MotionProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'جدال',
+  title: 'OtherHalf',
   description: 'لعبة مناظرات جماعية عبر المتصفح',
 };
 

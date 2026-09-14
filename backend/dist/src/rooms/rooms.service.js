@@ -182,6 +182,21 @@ let RoomsService = class RoomsService {
             throw new common_1.NotFoundException('room not found');
         return room;
     }
+    async recentChatMessages(roomId, take = 50) {
+        const messages = await this.prisma.chatMessage.findMany({
+            where: { roomId },
+            orderBy: { createdAt: 'desc' },
+            take,
+            select: {
+                id: true,
+                userId: true,
+                content: true,
+                createdAt: true,
+                user: { select: { username: true } },
+            },
+        });
+        return messages.reverse();
+    }
     async setRoomStatus(roomId, status) {
         return this.prisma.room.update({ where: { id: roomId }, data: { status } });
     }

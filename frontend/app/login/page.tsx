@@ -39,7 +39,7 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col justify-center gap-7">
         <div className="text-center">
           <div className="w-16 h-16 rounded-md mx-auto mb-3.5 bg-gradient-to-br from-mint to-mint-dim flex items-center justify-center text-2xl font-black text-white shadow-mint">
-            ج
+            O
           </div>
           <h1 className="text-2xl font-extrabold mb-1">تسجيل الدخول</h1>
           <p className="text-sm text-fg-500">أدخل اسمك وارجع للعبة فورًا</p>

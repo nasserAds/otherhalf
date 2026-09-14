@@ -14,6 +14,7 @@ exports.SocketEvents = {
     LOBBY_PLAYER_READY_CHANGED: 'lobby:playerReadyChanged',
     LOBBY_HOST_TRANSFERRED: 'lobby:hostTransferred',
     LOBBY_CHAT_MESSAGE: 'lobby:chatMessage',
+    LOBBY_CHAT_HISTORY: 'lobby:chatHistory',
     LOBBY_START_MATCH: 'lobby:startMatch',
     LOBBY_KICK_PLAYER: 'lobby:kickPlayer',
     LOBBY_KICKED: 'lobby:kicked',

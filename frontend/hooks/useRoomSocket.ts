@@ -27,6 +27,7 @@ export interface UpdateRoomSettingsInput {
 export function useRoomSocket(code: string | undefined) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const setRoom = useRoomStore((s) => s.setRoom);
+  const setChat = useRoomStore((s) => s.setChat);
   const updatePlayer = useRoomStore((s) => s.updatePlayer);
   const addChatMessage = useRoomStore((s) => s.addChatMessage);
   const clearRoom = useRoomStore((s) => s.clear);
@@ -56,6 +57,9 @@ export function useRoomSocket(code: string | undefined) {
       console.error('socket connect error:', err.message);
     };
     const onStateSync = (room: Room) => setRoom(room);
+    const onChatHistory = (
+      entries: { id: string; userId: string; username: string; content: string }[],
+    ) => setChat(entries);
     const onReadyChanged = ({ userId, isReady }: { userId: string; isReady: boolean }) =>
       updatePlayer(userId, { isReady });
     const onPresenceOnline = ({ userId }: { userId: string }) => updatePlayer(userId, { isOnline: true });
@@ -66,12 +70,12 @@ export function useRoomSocket(code: string | undefined) {
     const onKicked = () => {
       clearRoom();
       show('تم إخراجك من الغرفة بواسطة المضيف');
-      router.replace('/games/jadal');
+      router.replace('/games/otherhalf');
     };
     const onRoomClosed = () => {
       clearRoom();
       show('تم إغلاق الغرفة');
-      router.replace('/games/jadal');
+      router.replace('/games/otherhalf');
     };
 
     socket.on('connect', onConnect);
@@ -79,6 +83,7 @@ export function useRoomSocket(code: string | undefined) {
     socket.on('connect_error', onConnectError);
     socket.io.on('reconnect_attempt', onReconnectAttempt);
     socket.on(SocketEvents.ROOM_STATE_SYNC, onStateSync);
+    socket.on(SocketEvents.LOBBY_CHAT_HISTORY, onChatHistory);
     socket.on(SocketEvents.LOBBY_PLAYER_READY_CHANGED, onReadyChanged);
     socket.on(SocketEvents.PRESENCE_ONLINE, onPresenceOnline);
     socket.on(SocketEvents.PRESENCE_OFFLINE, onPresenceOffline);
@@ -98,6 +103,7 @@ export function useRoomSocket(code: string | undefined) {
       socket.off('connect_error', onConnectError);
       socket.io.off('reconnect_attempt', onReconnectAttempt);
       socket.off(SocketEvents.ROOM_STATE_SYNC, onStateSync);
+      socket.off(SocketEvents.LOBBY_CHAT_HISTORY, onChatHistory);
       socket.off(SocketEvents.LOBBY_PLAYER_READY_CHANGED, onReadyChanged);
       socket.off(SocketEvents.PRESENCE_ONLINE, onPresenceOnline);
       socket.off(SocketEvents.PRESENCE_OFFLINE, onPresenceOffline);
@@ -106,7 +112,7 @@ export function useRoomSocket(code: string | undefined) {
       socket.off(SocketEvents.ROOM_CLOSED, onRoomClosed);
       socket.off(SocketEvents.ERROR, onError);
     };
-  }, [accessToken, code, setRoom, updatePlayer, addChatMessage, clearRoom, setStatus, router, show]);
+  }, [accessToken, code, setRoom, setChat, updatePlayer, addChatMessage, clearRoom, setStatus, router, show]);
 
   return {
     toggleReady(isReady: boolean) {

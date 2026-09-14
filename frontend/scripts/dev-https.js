@@ -29,6 +29,6 @@ app.prepare().then(() => {
   }
 
   server.listen(port, hostname, () => {
-    console.log(`Jadal frontend ready on https://${hostname}:${port}`);
+    console.log(`OtherHalf frontend ready on https://${hostname}:${port}`);
   });
 });

@@ -225,6 +225,15 @@ export declare class RoomsService {
         status: import(".prisma/client").$Enums.RoomStatus;
         hostId: string;
     }>;
+    recentChatMessages(roomId: string, take?: number): Promise<{
+        id: string;
+        createdAt: Date;
+        user: {
+            username: string;
+        };
+        userId: string;
+        content: string;
+    }[]>;
     setRoomStatus(roomId: string, status: RoomStatus): Promise<{
         id: string;
         createdAt: Date;

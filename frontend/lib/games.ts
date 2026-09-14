@@ -11,8 +11,8 @@ export interface GameMeta {
 // change to add a new title beyond building its own /games/<slug> screen.
 export const GAMES: GameMeta[] = [
   {
-    slug: 'jadal',
-    title: 'جدال',
+    slug: 'otherhalf',
+    title: 'OtherHalf',
     tagline: 'مناظرات جماعية مباشرة أمام الجمهور',
     players: '4–12 لاعبين',
   },

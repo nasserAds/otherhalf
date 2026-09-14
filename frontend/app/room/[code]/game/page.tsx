@@ -51,7 +51,7 @@ export default function GamePage() {
 
   const { sendChat } = useRoomSocket(params.code); // keeps room membership alive if this screen is entered directly
   const { submitTurn, castVote, castPrediction, castTopicVote, react } = useGameSocket();
-  const { micOn, micStates, remoteStreams, toggleMic } = useVoiceChatContext();
+  const { micOn, micError, micStates, remoteStreams, toggleMic } = useVoiceChatContext();
   const sound = useSound();
   const voiceEnabled = room?.debateMode === 'VOICE' || room?.debateMode === 'TEXT_VOICE';
 
@@ -132,6 +132,7 @@ export default function GamePage() {
               toggleMic();
             }}
           />
+          {micError && <p className="mt-2 max-w-[240px] text-center text-xs font-bold text-amber">{micError}</p>}
         </div>
       )}
 

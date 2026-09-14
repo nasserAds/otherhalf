@@ -18,7 +18,7 @@ export function GameCoverCard({ game, onPlay }: GameCoverCardProps) {
       className="relative w-full rounded-lg overflow-hidden border border-line-800 bg-ink-900 text-right shadow-[0_16px_45px_rgba(66,86,73,0.10)]"
     >
       <div className="relative h-[120px] flex items-center justify-center overflow-hidden">
-        {game.comingSoon ? <ComingSoonArt /> : <JadalCoverArt />}
+        {game.comingSoon ? <ComingSoonArt /> : <OtherHalfCoverArt />}
       </div>
 
       <div className="p-4 flex items-center gap-3">
@@ -46,7 +46,7 @@ export function GameCoverCard({ game, onPlay }: GameCoverCardProps) {
   );
 }
 
-function JadalCoverArt() {
+function OtherHalfCoverArt() {
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-[#E3F8E9] via-[#FFFFFF] to-[#FFF0C9] flex items-center justify-center gap-0">
       <AvatarBadge avatar="LION" size="lg" glow />

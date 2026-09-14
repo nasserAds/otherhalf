@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const STORAGE_KEY = 'jadal_registration_username';
+const STORAGE_KEY = 'otherhalf_registration_username';
 
 interface RegistrationDraftState {
   username: string;
