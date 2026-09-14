@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  direction: rtl;
+}
+
+body {
+  background:
+    radial-gradient(circle at 18% -10%, rgba(167, 232, 199, 0.75) 0%, rgba(247, 250, 246, 0) 38%),
+    radial-gradient(circle at 82% 0%, rgba(244, 182, 61, 0.24) 0%, rgba(247, 250, 246, 0) 32%),
+    linear-gradient(180deg, #fbfdf9 0%, #eef6f0 100%);
+  color: #172033;
+  min-height: 100vh;
+}
+
+/* Big, game-like tap targets everywhere by default */
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Utility used by every big pill button for the press-down feel */
+.btn-press {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* Numeric/timer displays read left-to-right even inside an RTL page */
+.ltr-nums {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd9d2;
+  border-radius: 999px;
+}

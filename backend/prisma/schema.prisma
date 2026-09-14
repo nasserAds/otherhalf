@@ -1,0 +1,318 @@
+// ============================================================================
+// Phase 3 — Database Schema
+// Browser Multiplayer Debate Game ("جدال")
+// ============================================================================
+// Design notes (read before Phase 4):
+//
+// 1. STATISTICS: rather than a separate `Statistics` table that could drift
+//    out of sync, wins/losses/xp/coins live as denormalized counters directly
+//    on `User` for fast profile reads, backed by an append-only `XpTransaction`
+//    ledger below for auditability (so any counter can be recomputed/verified
+//    from history if it ever looks wrong).
+//
+// 2. AVATARS: built-in collection only (no uploads), modeled as a bounded
+//    enum rather than a free-text/URL field, matching the "choose from
+//    collection" requirement and preventing invalid values at the DB layer.
+//
+// 3. CHAT: `ChatMessage` was not in the original checklist but is required by
+//    the "Lobby chat" feature from Phase 1 — added here so the schema is
+//    actually complete for what the app needs to build.
+//
+// 4. TIE HANDLING: Phase 1 flagged the draw/tie-break rule as an open
+//    product question. The schema stays neutral: `Match.winnerId` is
+//    nullable and `Match.isDraw` is explicit, so either a random tie-break
+//    or a true "draw" outcome can be implemented in Phase 4 without a schema
+//    change.
+//
+// 5. IDs use cuid() (short, sortable, collision-resistant, no round-trip to
+//    the DB needed to generate) rather than auto-increment ints, since room
+//    codes/match ids may be referenced client-side before insert confirms.
+// ============================================================================
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Avatar {
+  LION
+  TIGER
+  FOX
+  PANDA
+  OWL
+  WOLF
+}
+
+enum RoomVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum DebateMode {
+  TEXT
+  VOICE
+  TEXT_VOICE
+}
+
+enum RoomStatus {
+  LOBBY
+  IN_PROGRESS
+  CLOSED
+}
+
+enum PlayerRole {
+  HOST
+  PLAYER
+}
+
+enum MatchStatus {
+  PREPARING
+  ROUND_1
+  ROUND_2
+  FINAL
+  VOTING
+  COMPLETED
+}
+
+enum RoundType {
+  PREP
+  ROUND_1
+  ROUND_2
+  FINAL
+}
+
+enum TopicCategory {
+  FUN
+  HYPOTHETICAL
+  EVERYDAY_LIFE
+  POP_CULTURE
+}
+
+enum XpTransactionType {
+  MATCH_WIN
+  MATCH_LOSS
+  CORRECT_PREDICTION
+  OTHER
+}
+
+// ---------------------------------------------------------------------------
+// Core models
+// ---------------------------------------------------------------------------
+
+model User {
+  id        String @id @default(cuid())
+  username  String @unique
+  avatar    Avatar @default(LION)
+
+  // Bcrypt hash of a random secret issued at registration and stored on the
+  // client (see Phase 4 auth notes) — lets a username be re-claimed on
+  // login without a password, while still preventing impersonation.
+  deviceSecretHash String
+
+  // Denormalized stat counters (see design note 1 above)
+  xp     Int @default(0)
+  coins  Int @default(0)
+  wins   Int @default(0)
+  losses Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  hostedRooms      Room[]          @relation("RoomHost")
+  roomMemberships  RoomPlayer[]
+  chatMessages     ChatMessage[]
+  matchesAsA       Match[]         @relation("DebaterA")
+  matchesAsB       Match[]         @relation("DebaterB")
+  matchesWon       Match[]         @relation("MatchWinner")
+  votesCast        Vote[]          @relation("VoteVoter")
+  votesReceived    Vote[]          @relation("VoteTarget")
+  predictionsMade  Prediction[]    @relation("PredictionPredictor")
+  predictionsAbout Prediction[]    @relation("PredictionTarget")
+  xpTransactions   XpTransaction[]
+  roundsSpoken     Round[]
+
+  @@index([xp])
+}
+
+model Room {
+  id         String         @id @default(cuid())
+  code       String         @unique // 6-char uppercase, generated at creation
+  visibility RoomVisibility @default(PUBLIC)
+  maxPlayers Int            @default(8)
+  debateMode DebateMode     @default(TEXT)
+  status     RoomStatus     @default(LOBBY)
+
+  hostId String
+  host   User   @relation("RoomHost", fields: [hostId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  players      RoomPlayer[]
+  matches      Match[]
+  chatMessages ChatMessage[]
+
+  @@index([status])
+  @@index([visibility, status])
+}
+
+// Join table: which users are (or were) in which room, and their lobby state
+model RoomPlayer {
+  id       String     @id @default(cuid())
+  roomId   String
+  room     Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User       @relation(fields: [userId], references: [id])
+  role     PlayerRole @default(PLAYER)
+  isReady  Boolean    @default(false)
+  isOnline Boolean    @default(true)
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+}
+
+model ChatMessage {
+  id      String @id @default(cuid())
+  roomId  String
+  room    Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  content String
+
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+model Topic {
+  id           String        @id @default(cuid())
+  text         String
+  category     TopicCategory @default(FUN)
+  stanceALabel String // e.g. "مع الفكرة"
+  stanceBLabel String // e.g. "ضد الفكرة"
+  isActive     Boolean       @default(true)
+
+  createdAt DateTime @default(now())
+
+  matches Match[]
+
+  @@index([category, isActive])
+}
+
+// One debate instance within a room's lifetime (a room can host many matches)
+model Match {
+  id     String @id @default(cuid())
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  topicId String
+  topic   Topic  @relation(fields: [topicId], references: [id])
+
+  debaterAId String
+  debaterA   User   @relation("DebaterA", fields: [debaterAId], references: [id])
+  debaterBId String
+  debaterB   User   @relation("DebaterB", fields: [debaterBId], references: [id])
+
+  status MatchStatus @default(PREPARING)
+
+  winnerId String?
+  winner   User?   @relation("MatchWinner", fields: [winnerId], references: [id])
+  isDraw   Boolean @default(false) // see design note 4 above
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+
+  rounds         Round[]
+  votes          Vote[]
+  predictions    Prediction[]
+  xpTransactions XpTransaction[]
+
+  @@index([roomId])
+  @@index([status])
+}
+
+model Round {
+  id      String    @id @default(cuid())
+  matchId String
+  match   Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  type    RoundType
+
+  // Nullable: PREP has no single speaker; voice-mode rounds may have no
+  // stored text content
+  speakerId String?
+  speaker   User?   @relation(fields: [speakerId], references: [id])
+  content   String?
+
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int
+
+  @@index([matchId])
+}
+
+model Vote {
+  id      String @id @default(cuid())
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  voterId String
+  voter   User   @relation("VoteVoter", fields: [voterId], references: [id])
+
+  votedForId String
+  votedFor   User   @relation("VoteTarget", fields: [votedForId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, voterId]) // one vote per player per match
+  @@index([matchId])
+}
+
+model Prediction {
+  id      String @id @default(cuid())
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  predictorId String
+  predictor   User   @relation("PredictionPredictor", fields: [predictorId], references: [id])
+
+  predictedWinnerId String
+  predictedWinner   User   @relation("PredictionTarget", fields: [predictedWinnerId], references: [id])
+
+  isCorrect Boolean? // resolved once the match ends; null while pending
+
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, predictorId]) // one prediction per player per match
+  @@index([matchId])
+}
+
+// Append-only ledger — every XP/coin award is a row here, so `User.xp` /
+// `User.coins` are always reconstructable and auditable.
+model XpTransaction {
+  id      String            @id @default(cuid())
+  userId  String
+  user    User              @relation(fields: [userId], references: [id])
+  matchId String?
+  match   Match?            @relation(fields: [matchId], references: [id])
+  type       XpTransactionType
+  xpAmount   Int
+  coinAmount Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([matchId])
+}
