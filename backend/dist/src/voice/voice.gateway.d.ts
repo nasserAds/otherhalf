@@ -10,6 +10,7 @@ declare class MicStateDto {
 export declare class VoiceGateway implements OnGatewayDisconnect {
     server: Server;
     private activeByRoom;
+    private micByRoom;
     private roomByUser;
     onJoin(client: Socket): void;
     onLeave(client: Socket): void;

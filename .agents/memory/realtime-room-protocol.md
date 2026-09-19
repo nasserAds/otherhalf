@@ -14,3 +14,9 @@ The browser-facing preview must use the frontend's same-origin `/api/backend` pr
 **Why:** The backend was reachable from the workspace shell, but two remote browsers could not reach the old LAN URL, and websocket-only connections timed out through the preview proxy.
 
 **How to apply:** Keep REST and Socket.IO on the proxied frontend origin, and require clients to reload after transport configuration changes.
+
+Voice listening is independent from microphone capture. A client joins the voice mesh as a recv-only peer on room entry; microphone permission only adds an outgoing audio track. Remote audio playback still needs one user gesture on browsers that enforce autoplay policy, so keep a visible listen/unmute control.
+
+**Why:** Requiring `getUserMedia` before joining meant users could not hear a speaker unless they granted microphone access, and mobile browsers can block a remote `<audio>` element until the user interacts with the page.
+
+**How to apply:** Keep voice join/leave tied to room membership, keep mic state tied only to outgoing tracks, and apply per-user mute locally to each remote audio element.

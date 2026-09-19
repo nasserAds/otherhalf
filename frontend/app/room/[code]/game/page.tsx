@@ -51,7 +51,17 @@ export default function GamePage() {
 
   const { sendChat } = useRoomSocket(params.code); // keeps room membership alive if this screen is entered directly
   const { submitTurn, castVote, castPrediction, castTopicVote, react } = useGameSocket();
-  const { micOn, micError, micStates, remoteStreams, toggleMic } = useVoiceChatContext();
+  const {
+    micOn,
+    micError,
+    micStates,
+    remoteStreams,
+    audioEnabled,
+    enableAudio,
+    mutedUsers,
+    toggleRemoteMute,
+    toggleMic,
+  } = useVoiceChatContext();
   const sound = useSound();
   const voiceEnabled = room?.debateMode === 'VOICE' || room?.debateMode === 'TEXT_VOICE';
 
@@ -119,12 +129,20 @@ export default function GamePage() {
 
   return (
     <PageTransition>
-      <RemoteAudioPlayers streams={remoteStreams} />
+      <RemoteAudioPlayers streams={remoteStreams} audioEnabled={audioEnabled} mutedUsers={mutedUsers} />
       <ConnectionBanner />
       <ReactionOverlay reaction={lastReaction} />
       <ChatDrawer messages={chat} onSend={sendChat} />
       {voiceEnabled && (
         <div className="fixed bottom-5 right-5 z-40">
+          <button
+            type="button"
+            onClick={enableAudio}
+            aria-pressed={audioEnabled}
+            className="mb-2 block rounded-pill border border-line-800 bg-ink-900/95 px-3 py-2 text-xs font-bold text-fg-500 hover:text-fg-100"
+          >
+            {audioEnabled ? 'الصوت مفعّل' : 'السماح بسماع اللاعبين'}
+          </button>
           <MicButton
             active={micOn}
             onClick={() => {
@@ -133,6 +151,25 @@ export default function GamePage() {
             }}
           />
           {micError && <p className="mt-2 max-w-[240px] text-center text-xs font-bold text-amber">{micError}</p>}
+          <div className="mt-2 rounded-lg border border-line-800 bg-ink-900/95 p-2">
+            <p className="mb-1 text-[10px] font-bold text-fg-600">أصوات اللاعبين</p>
+            {room?.players
+              .filter((player) => player.userId !== user?.id)
+              .map((player) => (
+                <button
+                  key={player.userId}
+                  type="button"
+                  onClick={() => toggleRemoteMute(player.userId)}
+                  aria-pressed={Boolean(mutedUsers[player.userId])}
+                  className="flex w-full items-center justify-between gap-4 rounded px-1 py-1 text-xs font-bold text-fg-500 hover:bg-ink-800 hover:text-fg-100"
+                >
+                  <span>{player.user.username}</span>
+                  <span className={mutedUsers[player.userId] ? 'text-amber' : 'text-mint'}>
+                    {mutedUsers[player.userId] ? 'مكتوم' : 'مسموع'}
+                  </span>
+                </button>
+              ))}
+          </div>
         </div>
       )}
 

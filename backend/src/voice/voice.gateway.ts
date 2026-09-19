@@ -41,6 +41,7 @@ export class VoiceGateway implements OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
 
   private activeByRoom = new Map<string, Set<string>>();
+  private micByRoom = new Map<string, Set<string>>();
   // reverse index so a disconnect can find which room(s) to clean up
   private roomByUser = new Map<string, string>();
 
@@ -49,13 +50,19 @@ export class VoiceGateway implements OnGatewayDisconnect {
     const { roomId, user } = this.requireRoom(client);
     const active = this.activeByRoom.get(roomId) ?? new Set<string>();
     this.activeByRoom.set(roomId, active);
+    const micUsers = this.micByRoom.get(roomId) ?? new Set<string>();
+    this.micByRoom.set(roomId, micUsers);
 
     // Tell the joiner who's already there — they'll wait for each of these
     // peers to send an offer (see the frontend hook), avoiding both sides
     // racing to initiate the same connection.
     const peerIds = [...active].filter((id) => id !== user.userId);
-    client.emit(SocketEvents.VOICE_ACTIVE_PEERS, { peerIds });
+    client.emit(SocketEvents.VOICE_ACTIVE_PEERS, {
+      peerIds,
+      micOnPeerIds: [...micUsers].filter((id) => id !== user.userId),
+    });
 
+    if (active.has(user.userId)) return;
     active.add(user.userId);
     this.roomByUser.set(user.userId, roomId);
     client.to(roomId).emit(SocketEvents.VOICE_PEER_JOINED, { userId: user.userId });
@@ -86,6 +93,10 @@ export class VoiceGateway implements OnGatewayDisconnect {
   @SubscribeMessage(SocketEvents.VOICE_MIC_STATE)
   onMicState(@ConnectedSocket() client: Socket, @MessageBody() body: MicStateDto) {
     const { roomId, user } = this.requireRoom(client);
+    const micUsers = this.micByRoom.get(roomId) ?? new Set<string>();
+    this.micByRoom.set(roomId, micUsers);
+    if (body.isMicOn) micUsers.add(user.userId);
+    else micUsers.delete(user.userId);
     this.server.to(roomId).emit(SocketEvents.VOICE_MIC_STATE, {
       userId: user.userId,
       isMicOn: body.isMicOn,
@@ -103,6 +114,7 @@ export class VoiceGateway implements OnGatewayDisconnect {
 
   private removeFromVoice(roomId: string, userId: string) {
     this.activeByRoom.get(roomId)?.delete(userId);
+    this.micByRoom.get(roomId)?.delete(userId);
     this.roomByUser.delete(userId);
   }
 

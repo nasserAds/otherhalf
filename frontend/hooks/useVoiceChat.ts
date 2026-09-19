@@ -24,11 +24,14 @@ export function useVoiceChat() {
   const [micError, setMicError] = useState<string | null>(null);
   const [micStates, setMicStates] = useState<Record<string, boolean>>({});
   const [remoteStreams, setRemoteStreams] = useState<Record<string, MediaStream>>({});
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [mutedUsers, setMutedUsers] = useState<Record<string, boolean>>({});
 
   const localStreamRef = useRef<MediaStream | null>(null);
   const peersRef = useRef<Map<string, RTCPeerConnection>>(new Map());
   const pendingCandidatesRef = useRef<Map<string, RTCIceCandidateInit[]>>(new Map());
   const joinedVoiceRoomRef = useRef<string | null>(null);
+  const voicePeerIdsRef = useRef<Set<string>>(new Set());
 
   const closePeer = useCallback((userId: string) => {
     peersRef.current.get(userId)?.close();
@@ -45,9 +48,16 @@ export function useVoiceChat() {
     peersRef.current.get(remoteUserId)?.close();
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
-    localStreamRef.current?.getTracks().forEach((track) => {
-      pc.addTrack(track, localStreamRef.current as MediaStream);
+    // A listen-only browser still needs an audio recvonly m-line in its offer.
+    // Without this transceiver, the speaking peer has nowhere to send audio
+    // until the listener enables their own microphone.
+    const localAudioTrack = localStreamRef.current?.getAudioTracks()[0] ?? null;
+    const audioTransceiver = pc.addTransceiver('audio', {
+      direction: localAudioTrack ? 'sendrecv' : 'recvonly',
     });
+    if (localAudioTrack) {
+      audioTransceiver.sender.replaceTrack(localAudioTrack).catch(() => undefined);
+    }
 
     pc.onicecandidate = (e) => {
       if (!e.candidate) return;
@@ -64,6 +74,32 @@ export function useVoiceChat() {
 
     peersRef.current.set(remoteUserId, pc);
     return pc;
+  }, []);
+
+  const renegotiatePeer = useCallback(async (remoteUserId: string, token: string) => {
+    const pc = peersRef.current.get(remoteUserId);
+    if (!pc) return;
+
+    const localTracks = localStreamRef.current?.getTracks() ?? [];
+    const audioSender = pc.getSenders().find((sender) => sender.track?.kind === 'audio');
+    const localAudioTrack = localTracks.find((track) => track.kind === 'audio') ?? null;
+    const audioTransceiver = pc.getTransceivers().find((transceiver) => transceiver.receiver.track.kind === 'audio');
+    if (audioTransceiver) {
+      audioTransceiver.direction = localAudioTrack ? 'sendrecv' : 'recvonly';
+      await audioTransceiver.sender.replaceTrack(localAudioTrack);
+    } else if (audioSender) {
+      await audioSender.replaceTrack(localAudioTrack);
+    } else if (localAudioTrack) {
+      pc.addTrack(localAudioTrack, localStreamRef.current as MediaStream);
+    }
+
+    const offer = await pc.createOffer();
+    if (!offer.sdp) throw new Error('failed to create voice renegotiation offer');
+    await pc.setLocalDescription(offer);
+    getSocket(token).emit(SocketEvents.VOICE_SIGNAL, {
+      targetUserId: remoteUserId,
+      data: { type: 'offer', sdp: offer.sdp } satisfies SignalData,
+    });
   }, []);
 
   const callPeer = useCallback(
@@ -86,22 +122,36 @@ export function useVoiceChat() {
     const voiceEnabled = room.debateMode === 'VOICE' || room.debateMode === 'TEXT_VOICE';
     if (!voiceEnabled) return;
 
-    const onActivePeers = ({ peerIds }: { peerIds: string[] }) => {
+    const onActivePeers = ({
+      peerIds,
+      micOnPeerIds = [],
+    }: {
+      peerIds: string[];
+      micOnPeerIds?: string[];
+    }) => {
       setMicStates((prev) => {
         const next = { ...prev };
         peerIds.forEach((peerId) => {
-          next[peerId] = true;
+          next[peerId] = micOnPeerIds.includes(peerId);
         });
         return next;
       });
-      if (!localStreamRef.current) return;
       peerIds.forEach((peerId) => {
+        voicePeerIdsRef.current.add(peerId);
         if (peersRef.current.has(peerId)) return;
         callPeer(peerId, accessToken).catch((err) => console.error('voice call failed:', err));
       });
     };
 
-    const onPeerLeft = ({ userId }: { userId: string }) => closePeer(userId);
+    const onPeerLeft = ({ userId }: { userId: string }) => {
+      voicePeerIdsRef.current.delete(userId);
+      setMicStates((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+      closePeer(userId);
+    };
 
     const onSignal = async ({ fromUserId, data }: { fromUserId: string; data: SignalData }) => {
       try {
@@ -140,6 +190,11 @@ export function useVoiceChat() {
     const onMicState = ({ userId, isMicOn }: { userId: string; isMicOn: boolean }) =>
       setMicStates((prev) => ({ ...prev, [userId]: isMicOn }));
 
+    if (joinedVoiceRoomRef.current !== room.id) {
+      socket.emit(SocketEvents.VOICE_JOIN);
+      joinedVoiceRoomRef.current = room.id;
+    }
+
     socket.on(SocketEvents.VOICE_ACTIVE_PEERS, onActivePeers);
     socket.on(SocketEvents.VOICE_PEER_LEFT, onPeerLeft);
     socket.on(SocketEvents.VOICE_SIGNAL, onSignal);
@@ -154,6 +209,7 @@ export function useVoiceChat() {
         socket.emit(SocketEvents.VOICE_LEAVE);
         joinedVoiceRoomRef.current = null;
       }
+      voicePeerIdsRef.current.clear();
     };
   }, [accessToken, room?.id, room?.debateMode, callPeer, createPeerConnection, closePeer]);
 
@@ -168,7 +224,16 @@ export function useVoiceChat() {
       peersRef.current.forEach((pc) => pc.close());
       peersRef.current.clear();
       pendingCandidatesRef.current.clear();
+      voicePeerIdsRef.current.clear();
     };
+  }, []);
+
+  const enableAudio = useCallback(() => {
+    setAudioEnabled(true);
+  }, []);
+
+  const toggleRemoteMute = useCallback((userId: string) => {
+    setMutedUsers((prev) => ({ ...prev, [userId]: !prev[userId] }));
   }, []);
 
   const toggleMic = useCallback(async () => {
@@ -181,44 +246,48 @@ export function useVoiceChat() {
     if (micOn) {
       localStreamRef.current?.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
-      peersRef.current.forEach((pc) => pc.close());
-      peersRef.current.clear();
-      pendingCandidatesRef.current.clear();
-      setRemoteStreams({});
       socket.emit(SocketEvents.VOICE_MIC_STATE, { isMicOn: false });
-      if (joinedVoiceRoomRef.current === room.id) {
-        socket.emit(SocketEvents.VOICE_LEAVE);
-        joinedVoiceRoomRef.current = null;
-      }
       setMicOn(false);
+      await Promise.all(
+        [...voicePeerIdsRef.current].map((peerId) =>
+          renegotiatePeer(peerId, accessToken).catch((err) => console.error('voice mute failed:', err)),
+        ),
+      );
       return;
     }
 
     try {
-      if (!window.isSecureContext) {
-        throw new Error('PHONE_MIC_REQUIRES_HTTPS');
-      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
     } catch (err) {
       // Permission denied or no mic available — stay off, don't join voice.
       const message =
-        err instanceof Error && err.message === 'PHONE_MIC_REQUIRES_HTTPS'
+        !window.isSecureContext
           ? 'Microphone needs HTTPS on phones. You can still listen here, but phone mic will not open from this HTTP LAN URL.'
           : 'Microphone permission was blocked or no microphone is available.';
       setMicError(message);
       return;
     }
 
-    peersRef.current.forEach((pc) => pc.close());
-    peersRef.current.clear();
-    pendingCandidatesRef.current.clear();
-    setRemoteStreams({});
-    socket.emit(SocketEvents.VOICE_JOIN);
-    joinedVoiceRoomRef.current = room.id;
+    enableAudio();
     socket.emit(SocketEvents.VOICE_MIC_STATE, { isMicOn: true });
     setMicOn(true);
-  }, [accessToken, micOn, room]);
+    await Promise.all(
+      [...voicePeerIdsRef.current].map((peerId) =>
+        renegotiatePeer(peerId, accessToken).catch((err) => console.error('voice mic failed:', err)),
+      ),
+    );
+  }, [accessToken, enableAudio, micOn, renegotiatePeer, room]);
 
-  return { micOn, micError, micStates, remoteStreams, toggleMic };
+  return {
+    micOn,
+    micError,
+    micStates,
+    remoteStreams,
+    audioEnabled,
+    enableAudio,
+    mutedUsers,
+    toggleRemoteMute,
+    toggleMic,
+  };
 }

@@ -40,14 +40,22 @@ __decorate([
 let VoiceGateway = class VoiceGateway {
     constructor() {
         this.activeByRoom = new Map();
+        this.micByRoom = new Map();
         this.roomByUser = new Map();
     }
     onJoin(client) {
         const { roomId, user } = this.requireRoom(client);
         const active = this.activeByRoom.get(roomId) ?? new Set();
         this.activeByRoom.set(roomId, active);
+        const micUsers = this.micByRoom.get(roomId) ?? new Set();
+        this.micByRoom.set(roomId, micUsers);
         const peerIds = [...active].filter((id) => id !== user.userId);
-        client.emit(socket_events_1.SocketEvents.VOICE_ACTIVE_PEERS, { peerIds });
+        client.emit(socket_events_1.SocketEvents.VOICE_ACTIVE_PEERS, {
+            peerIds,
+            micOnPeerIds: [...micUsers].filter((id) => id !== user.userId),
+        });
+        if (active.has(user.userId))
+            return;
         active.add(user.userId);
         this.roomByUser.set(user.userId, roomId);
         client.to(roomId).emit(socket_events_1.SocketEvents.VOICE_PEER_JOINED, { userId: user.userId });
@@ -66,6 +74,12 @@ let VoiceGateway = class VoiceGateway {
     }
     onMicState(client, body) {
         const { roomId, user } = this.requireRoom(client);
+        const micUsers = this.micByRoom.get(roomId) ?? new Set();
+        this.micByRoom.set(roomId, micUsers);
+        if (body.isMicOn)
+            micUsers.add(user.userId);
+        else
+            micUsers.delete(user.userId);
         this.server.to(roomId).emit(socket_events_1.SocketEvents.VOICE_MIC_STATE, {
             userId: user.userId,
             isMicOn: body.isMicOn,
@@ -83,6 +97,7 @@ let VoiceGateway = class VoiceGateway {
     }
     removeFromVoice(roomId, userId) {
         this.activeByRoom.get(roomId)?.delete(userId);
+        this.micByRoom.get(roomId)?.delete(userId);
         this.roomByUser.delete(userId);
     }
     requireRoom(client) {

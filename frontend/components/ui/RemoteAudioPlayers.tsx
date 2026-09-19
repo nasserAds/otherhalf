@@ -1,12 +1,28 @@
 'use client';
 
-// Renders one hidden <audio> element per connected voice peer. Audio
-// elements need `srcObject` set imperatively (it's not a valid JSX/HTML
-// attribute), hence the ref callback below rather than a prop. The explicit
-// .play() call is a safety net — turning the mic on is itself a user
-// gesture, which satisfies autoplay-with-sound policies in practice, but
-// some browsers still need a nudge for elements created after that gesture.
-export function RemoteAudioPlayers({ streams }: { streams: Record<string, MediaStream> }) {
+import { useEffect, useRef } from 'react';
+
+// Audio playback is intentionally independent from microphone capture. Browsers
+// may block remote audio until the user taps the listen button, so this
+// component retries playback whenever listening is enabled or a new peer arrives.
+export function RemoteAudioPlayers({
+  streams,
+  audioEnabled,
+  mutedUsers,
+}: {
+  streams: Record<string, MediaStream>;
+  audioEnabled: boolean;
+  mutedUsers: Record<string, boolean>;
+}) {
+  const audioRefs = useRef<Record<string, HTMLAudioElement>>({});
+
+  useEffect(() => {
+    Object.entries(audioRefs.current).forEach(([userId, audio]) => {
+      audio.muted = Boolean(mutedUsers[userId]);
+      if (audioEnabled) audio.play().catch(() => undefined);
+    });
+  }, [audioEnabled, mutedUsers, streams]);
+
   return (
     <>
       {Object.entries(streams).map(([userId, stream]) => (
@@ -14,10 +30,16 @@ export function RemoteAudioPlayers({ streams }: { streams: Record<string, MediaS
           key={userId}
           autoPlay
           playsInline
+          aria-hidden="true"
           ref={(el) => {
-            if (!el || el.srcObject === stream) return;
-            el.srcObject = stream;
-            el.play().catch(() => undefined);
+            if (!el) {
+              delete audioRefs.current[userId];
+              return;
+            }
+            audioRefs.current[userId] = el;
+            el.muted = Boolean(mutedUsers[userId]);
+            if (el.srcObject !== stream) el.srcObject = stream;
+            if (audioEnabled) el.play().catch(() => undefined);
           }}
         />
       ))}
