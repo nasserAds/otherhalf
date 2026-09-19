@@ -12,8 +12,14 @@ export function getSocket(accessToken: string): Socket {
   if (socket && socketToken === accessToken) return socket;
   if (socket) socket.disconnect();
   socketToken = accessToken;
-  socket = io(SOCKET_URL, {
+  const isProxiedSocket = SOCKET_URL.startsWith('/');
+  socket = io(isProxiedSocket ? window.location.origin : SOCKET_URL, {
     auth: { token: accessToken },
+    ...(isProxiedSocket
+      ? { path: `${SOCKET_URL.replace(/\/$/, '')}/socket.io` }
+      : {}),
+    transports: ['polling'],
+    upgrade: false,
     autoConnect: true,
     reconnection: true,
     reconnectionDelay: 1000,

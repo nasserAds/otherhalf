@@ -1,5 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-export const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? API_URL;
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api/backend';
+export const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? '/api/backend';
 
 export const REACTION_EMOJIS = ['🔥', '😂', '👏', '😮'];
 
