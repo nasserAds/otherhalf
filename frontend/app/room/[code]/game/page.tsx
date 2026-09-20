@@ -57,7 +57,6 @@ export default function GamePage() {
     micStates,
     remoteStreams,
     audioEnabled,
-    enableAudio,
     mutedUsers,
     toggleRemoteMute,
     toggleMic,
@@ -135,14 +134,6 @@ export default function GamePage() {
       <ChatDrawer messages={chat} onSend={sendChat} />
       {voiceEnabled && (
         <div className="fixed bottom-5 right-5 z-40">
-          <button
-            type="button"
-            onClick={enableAudio}
-            aria-pressed={audioEnabled}
-            className="mb-2 block rounded-pill border border-line-800 bg-ink-900/95 px-3 py-2 text-xs font-bold text-fg-500 hover:text-fg-100"
-          >
-            {audioEnabled ? 'الصوت مفعّل' : 'السماح بسماع اللاعبين'}
-          </button>
           <MicButton
             active={micOn}
             onClick={() => {

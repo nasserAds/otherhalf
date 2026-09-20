@@ -90,12 +90,15 @@ let RoomsGateway = class RoomsGateway {
             clearTimeout(pending);
             this.disconnectTimers.delete(key);
         }
+        const wasAlreadyInRoom = client.data.roomId === room.id;
         client.data.roomId = room.id;
         client.join(room.id);
-        this.server.to(room.id).emit(socket_events_1.SocketEvents.LOBBY_PLAYER_JOINED, {
-            userId: user.userId,
-            username: user.username,
-        });
+        if (!wasAlreadyInRoom) {
+            this.server.to(room.id).emit(socket_events_1.SocketEvents.LOBBY_PLAYER_JOINED, {
+                userId: user.userId,
+                username: user.username,
+            });
+        }
         this.server.to(room.id).emit(socket_events_1.SocketEvents.ROOM_STATE_SYNC, room);
         const recentMessages = await this.roomsService.recentChatMessages(room.id);
         client.emit(socket_events_1.SocketEvents.LOBBY_CHAT_HISTORY, recentMessages.map((message) => ({

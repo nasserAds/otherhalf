@@ -24,7 +24,10 @@ export function useVoiceChat() {
   const [micError, setMicError] = useState<string | null>(null);
   const [micStates, setMicStates] = useState<Record<string, boolean>>({});
   const [remoteStreams, setRemoteStreams] = useState<Record<string, MediaStream>>({});
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  // Try remote playback immediately. Browsers that enforce autoplay may still
+  // require a prior page interaction, but voice no longer waits on a separate
+  // "listen" control or on local microphone permission.
+  const [audioEnabled, setAudioEnabled] = useState(true);
   const [mutedUsers, setMutedUsers] = useState<Record<string, boolean>>({});
 
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -190,17 +193,28 @@ export function useVoiceChat() {
     const onMicState = ({ userId, isMicOn }: { userId: string; isMicOn: boolean }) =>
       setMicStates((prev) => ({ ...prev, [userId]: isMicOn }));
 
-    if (joinedVoiceRoomRef.current !== room.id) {
-      socket.emit(SocketEvents.VOICE_JOIN);
-      joinedVoiceRoomRef.current = room.id;
-    }
-
     socket.on(SocketEvents.VOICE_ACTIVE_PEERS, onActivePeers);
     socket.on(SocketEvents.VOICE_PEER_LEFT, onPeerLeft);
     socket.on(SocketEvents.VOICE_SIGNAL, onSignal);
     socket.on(SocketEvents.VOICE_MIC_STATE, onMicState);
 
+    const joinVoiceAfterRoomJoin = () => {
+      if (joinedVoiceRoomRef.current === room.id) return;
+      // RoomsGateway is also responsible for the normal room join. Sending
+      // this idempotent join with an acknowledgement guarantees voice starts
+      // only after the server has populated client.data.roomId.
+      socket.emit(SocketEvents.ROOM_JOIN, { code: room.code }, () => {
+        if (joinedVoiceRoomRef.current === room.id) return;
+        socket.emit(SocketEvents.VOICE_JOIN);
+        joinedVoiceRoomRef.current = room.id;
+      });
+    };
+
+    socket.on('connect', joinVoiceAfterRoomJoin);
+    if (socket.connected) joinVoiceAfterRoomJoin();
+
     return () => {
+      socket.off('connect', joinVoiceAfterRoomJoin);
       socket.off(SocketEvents.VOICE_ACTIVE_PEERS, onActivePeers);
       socket.off(SocketEvents.VOICE_PEER_LEFT, onPeerLeft);
       socket.off(SocketEvents.VOICE_SIGNAL, onSignal);
@@ -269,7 +283,6 @@ export function useVoiceChat() {
       return;
     }
 
-    enableAudio();
     socket.emit(SocketEvents.VOICE_MIC_STATE, { isMicOn: true });
     setMicOn(true);
     await Promise.all(
@@ -277,7 +290,7 @@ export function useVoiceChat() {
         renegotiatePeer(peerId, accessToken).catch((err) => console.error('voice mic failed:', err)),
       ),
     );
-  }, [accessToken, enableAudio, micOn, renegotiatePeer, room]);
+  }, [accessToken, micOn, renegotiatePeer, room]);
 
   return {
     micOn,

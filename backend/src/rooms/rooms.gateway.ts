@@ -108,13 +108,16 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.disconnectTimers.delete(key);
     }
 
+    const wasAlreadyInRoom = client.data.roomId === room.id;
     client.data.roomId = room.id;
     client.join(room.id);
 
-    this.server.to(room.id).emit(SocketEvents.LOBBY_PLAYER_JOINED, {
-      userId: user.userId,
-      username: user.username,
-    });
+    if (!wasAlreadyInRoom) {
+      this.server.to(room.id).emit(SocketEvents.LOBBY_PLAYER_JOINED, {
+        userId: user.userId,
+        username: user.username,
+      });
+    }
 
     // Full state resync for everyone keeps all clients aligned after joins,
     // reconnects, and device changes without asking clients to re-join.

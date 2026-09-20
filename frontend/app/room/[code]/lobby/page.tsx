@@ -39,7 +39,6 @@ export default function LobbyPage() {
     micStates,
     remoteStreams,
     audioEnabled,
-    enableAudio,
     mutedUsers,
     toggleRemoteMute,
     toggleMic,
@@ -143,14 +142,6 @@ export default function LobbyPage() {
 
       {voiceEnabled && (
         <div className="self-center mb-3 flex flex-col items-center gap-2">
-          <button
-            type="button"
-            onClick={enableAudio}
-            aria-pressed={audioEnabled}
-            className="text-xs font-bold text-fg-500 hover:text-fg-100 transition-colors"
-          >
-            {audioEnabled ? 'الصوت مفعّل' : 'اضغط هنا لسماع اللاعبين بدون فتح الميكروفون'}
-          </button>
           <MicButton active={micOn} onClick={handleMicToggle} />
           {micError && <p className="max-w-[280px] text-center text-xs font-bold text-amber">{micError}</p>}
         </div>

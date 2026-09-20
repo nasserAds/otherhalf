@@ -48,11 +48,17 @@ let RoomsService = class RoomsService {
         if (room.status !== client_1.RoomStatus.LOBBY) {
             throw new common_1.BadRequestException('this room is not accepting new players right now');
         }
-        const existingMembership = room.players.find((p) => p.userId === userId);
+        const existingMembership = await this.prisma.roomPlayer.findUnique({
+            where: { roomId_userId: { roomId: room.id, userId } },
+        });
         if (existingMembership) {
             await this.prisma.roomPlayer.update({
                 where: { id: existingMembership.id },
-                data: { isOnline: true, leftAt: null },
+                data: {
+                    isOnline: true,
+                    leftAt: null,
+                    role: room.hostId === userId ? client_1.PlayerRole.HOST : client_1.PlayerRole.PLAYER,
+                },
             });
         }
         else {

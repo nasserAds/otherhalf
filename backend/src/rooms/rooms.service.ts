@@ -54,12 +54,23 @@ export class RoomsService {
       throw new BadRequestException('this room is not accepting new players right now');
     }
 
-    const existingMembership = room.players.find((p) => p.userId === userId);
+    // Look up membership without the roomInclude `leftAt: null` filter.
+    // A former host/player must be able to rejoin the same room without
+    // colliding with their retained unique roomPlayer row.
+    const existingMembership = await this.prisma.roomPlayer.findUnique({
+      where: { roomId_userId: { roomId: room.id, userId } },
+    });
     if (existingMembership) {
       // Rejoin: bring an existing member back online rather than duplicating them.
       await this.prisma.roomPlayer.update({
         where: { id: existingMembership.id },
-        data: { isOnline: true, leftAt: null },
+        data: {
+          isOnline: true,
+          leftAt: null,
+          // If the host left and ownership transferred, they return as a
+          // normal player. The current room host remains the only host.
+          role: room.hostId === userId ? PlayerRole.HOST : PlayerRole.PLAYER,
+        },
       });
     } else {
       const activePlayerCount = room.players.filter((p) => p.leftAt === null).length;
