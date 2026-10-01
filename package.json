@@ -1,0 +1,18 @@
+{
+  "name": "otherhalf",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm run build:frontend",
+    "build:frontend": "npm --workspace otherhalf-frontend run build",
+    "build:backend": "npm --workspace otherhalf-backend run build",
+    "dev:frontend": "npm --workspace otherhalf-frontend run dev",
+    "dev:backend": "npm --workspace otherhalf-backend run start:dev",
+    "lint:frontend": "npm --workspace otherhalf-frontend run lint",
+    "test:backend": "npm --workspace otherhalf-backend run test"
+  }
+}
