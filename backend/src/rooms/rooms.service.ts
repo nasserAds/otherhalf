@@ -222,6 +222,36 @@ export class RoomsService {
     });
   }
 
+  async listAdminRooms() {
+    return this.prisma.room.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        visibility: true,
+        maxPlayers: true,
+        debateMode: true,
+        createdAt: true,
+        host: { select: { username: true } },
+        players: { where: { isOnline: true }, select: { userId: true } },
+      },
+    });
+  }
+
+  async closeRoomByAdmin(roomId: string) {
+    const room = await this.prisma.room.findUnique({ where: { id: roomId }, select: { id: true, code: true } });
+    if (!room) throw new NotFoundException('room not found');
+
+    await this.prisma.room.update({
+      where: { id: roomId },
+      data: { status: RoomStatus.CLOSED },
+    });
+
+    return { id: room.id, code: room.code };
+  }
+
   async getRoomByCode(code: string) {
     const room = await this.prisma.room.findUnique({
       where: { code: code.toUpperCase() },
