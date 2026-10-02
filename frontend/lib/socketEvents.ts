@@ -25,6 +25,7 @@ export const SocketEvents = {
   GAME_PHASE_CHANGED: 'game:phaseChanged',
   GAME_TIMER_TICK: 'game:timerTick',
   GAME_TURN_SUBMITTED: 'game:turnSubmitted',
+  GAME_STATE_SYNC_REQUEST: 'game:stateSyncRequest',
 
   GAME_TOPIC_VOTE_STARTED: 'game:topicVoteStarted',
   GAME_TOPIC_VOTE_CAST: 'game:topicVoteCast',
