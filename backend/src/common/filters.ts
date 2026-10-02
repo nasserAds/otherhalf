@@ -22,6 +22,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    if (!(exception instanceof HttpException)) {
+      console.error('Unhandled HTTP exception:', {
+        name: exception instanceof Error ? exception.name : 'UnknownError',
+        message: exception instanceof Error ? exception.message : String(exception),
+        stack: exception instanceof Error ? exception.stack : undefined,
+      });
+    }
+
     const message =
       exception instanceof HttpException
         ? exception.getResponse()
@@ -46,6 +54,14 @@ export class WsExceptionFilter implements ExceptionFilter {
       exception instanceof WsException || exception instanceof HttpException
         ? exception.message
         : 'Unexpected server error';
+
+    if (!(exception instanceof WsException) && !(exception instanceof HttpException)) {
+      console.error('Unhandled WebSocket exception:', {
+        name: exception instanceof Error ? exception.name : 'UnknownError',
+        message: exception instanceof Error ? exception.message : String(exception),
+        stack: exception instanceof Error ? exception.stack : undefined,
+      });
+    }
 
     client.emit('error', { message });
   }
