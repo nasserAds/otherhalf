@@ -13,6 +13,7 @@ import { GameModule } from './game/game.module';
 import { VotingModule } from './voting/voting.module';
 import { XpModule } from './xp/xp.module';
 import { VoiceModule } from './voice/voice.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { VoiceModule } from './voice/voice.module';
     VotingModule,
     XpModule,
     VoiceModule,
+    AnalyticsModule,
   ],
   providers: [
     {
