@@ -49,6 +49,13 @@ export class GameGateway {
     private readonly votingService: VotingService,
   ) {}
 
+  @SubscribeMessage(SocketEvents.GAME_STATE_SYNC_REQUEST)
+  async onGameStateSyncRequest(@ConnectedSocket() client: Socket) {
+    const roomId = client.data.roomId;
+    if (!roomId) return;
+    await this.gameService.syncStateToClient(roomId, client);
+  }
+
   @SubscribeMessage(SocketEvents.GAME_TOPIC_VOTE_CAST)
   onTopicVoteCast(@ConnectedSocket() client: Socket, @MessageBody() body: TopicVoteDto) {
     const user = client.data.user;
