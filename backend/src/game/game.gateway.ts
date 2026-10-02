@@ -40,7 +40,7 @@ class TopicVoteDto {
 
 @UseFilters(WsExceptionFilter)
 @UseGuards(WsJwtGuard)
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, path: '/api/backend/socket.io' })
 export class GameGateway {
   @WebSocketServer() server!: Server;
 
