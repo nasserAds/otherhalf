@@ -88,6 +88,33 @@ export const api = {
       headers: { 'x-admin-key': adminKey },
       body: JSON.stringify({ username }),
     }),
+
+  getAdminAnalytics: (adminKey: string) =>
+    request<{
+      traffic: { totalVisits: number; todayVisits: number; todayUniqueVisitors: number; onlineVisitors: number };
+      users: number;
+      totalMatches: number;
+      activeGames: number;
+      rooms: Array<{
+        id: string;
+        code: string;
+        status: string;
+        visibility: string;
+        maxPlayers: number;
+        debateMode: string;
+        createdAt: string;
+        host: { username: string };
+        players: string[];
+      }>;
+    }>('/analytics/admin', {
+      headers: { 'x-admin-key': adminKey },
+    }),
+
+  closeAdminRoom: (adminKey: string, roomId: string) =>
+    request<{ id: string; code: string }>(`/admin/rooms/${roomId}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-key': adminKey },
+    }),
 };
 
 export { ApiError };
