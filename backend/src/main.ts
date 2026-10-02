@@ -12,11 +12,11 @@ loadEnv();
 // Prefer the Neon/Vercel database variable when it exists. Prisma reads
 // DATABASE_URL from the schema, so normalize the production environment here.
 const databaseUrl =
+  process.env.DATABASE_URL ??
   process.env.NEON_DATABASE_URL ??
   process.env.POSTGRES_PRISMA_URL ??
   process.env.POSTGRES_URL_NON_POOLING ??
   process.env.POSTGRES_URL ??
-  process.env.DATABASE_URL ??
   '';
 
 if (databaseUrl) {
