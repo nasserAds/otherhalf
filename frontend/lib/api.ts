@@ -64,6 +64,18 @@ export const api = {
 
   me: (token: string) => request<User>('/users/me', {}, token),
 
+  getPlayerProfile: (token: string, username: string) => request<{
+    id: string; username: string; avatar: Avatar; level: number; xp: number; wins: number; losses: number;
+    winRate: number; totalDebates: number; votesReceived: number; currentWinStreak: number; longestWinStreak: number;
+    profilePublic: boolean;
+    matchHistory: Array<{ id: string; topic: string; result: 'WIN' | 'LOSS' | 'DRAW'; endedAt: string | null }>;
+  }>(`/users/profile/${encodeURIComponent(username)}`, {}, token),
+
+  updateProfilePrivacy: (token: string, profilePublic: boolean) =>
+    request<{ profilePublic: boolean }>('/users/me/profile-privacy', {
+      method: 'PATCH', body: JSON.stringify({ profilePublic }),
+    }, token),
+
   updateUsername: (token: string, username: string) =>
     request<{ accessToken: string; user: User }>('/users/me/username', {
       method: 'PATCH',
