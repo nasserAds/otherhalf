@@ -187,6 +187,23 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, O
     return room;
   }
 
+  @SubscribeMessage(SocketEvents.LOBBY_READY_TOGGLE)
+  async onReadyToggle(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { isReady: boolean },
+  ) {
+    const user = client.data.user;
+    const roomId = client.data.roomId;
+    if (!roomId) return;
+
+    const isReady = Boolean(body?.isReady);
+    const player = await this.roomsService.setReady(user.userId, roomId, isReady);
+    this.server.to(roomId).emit(SocketEvents.LOBBY_PLAYER_READY_CHANGED, {
+      userId: user.userId,
+      isReady: player.isReady,
+    });
+  }
+
   @SubscribeMessage(SocketEvents.ROOM_LEAVE)
   async onRoomLeave(@ConnectedSocket() client: Socket) {
     const user = client.data.user;
