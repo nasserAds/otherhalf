@@ -39,7 +39,7 @@ export default function GamesHubPage() {
             </span>
           </div>
         </div>
-        <Link href="/settings" className="mr-auto text-fg-500 hover:text-fg-100" aria-label="الإعدادات">
+        <Link href={user ? `/profile/${encodeURIComponent(user.username)}` : '/settings'} className="mr-auto text-fg-500 hover:text-fg-100" aria-label="الملف الشخصي">
           <GearIcon />
         </Link>
       </div>
