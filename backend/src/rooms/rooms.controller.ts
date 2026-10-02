@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../common/guards';
 import { CurrentUser, AuthUser } from '../common/decorators';
 import { RoomsService } from './rooms.service';
@@ -22,11 +22,6 @@ export class RoomsController {
   @Get('public')
   listPublic(@Query() query: ListPublicRoomsDto) {
     return this.roomsService.listPublicRooms(query.take);
-  }
-
-  @Delete('admin/:roomId')
-  closeAdmin(@Param('roomId') roomId: string) {
-    return this.roomsService.closeRoomByAdmin(roomId);
   }
 
   @Get(':code')
