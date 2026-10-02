@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ToastProvider } from '@/components/ui/Toast';
 import { MotionProvider } from '@/components/providers/MotionProvider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { VisitorTracker } from '@/components/providers/VisitorTracker';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,7 +16,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-cairo antialiased">
         <MotionProvider>
           <ToastProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <VisitorTracker />
+              {children}
+            </AuthProvider>
           </ToastProvider>
         </MotionProvider>
       </body>
