@@ -36,7 +36,7 @@ class MicStateDto {
 // the mesh connections are established.
 @UseFilters(WsExceptionFilter)
 @UseGuards(WsJwtGuard)
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, path: '/api/backend/socket.io' })
 export class VoiceGateway implements OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
 
