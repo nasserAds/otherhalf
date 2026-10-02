@@ -37,18 +37,49 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, O
   @WebSocketServer() server!: Server;
 
   async afterInit(server: Server) {
-    const redisUrl = process.env.REDIS_URL;
+    // Vercel/Upstash may expose the same Redis database through either
+    // REDIS_URL or KV_URL. Prefer REDIS_URL, but keep KV_URL as a fallback
+    // so the adapter still works if the integration changes its variable set.
+    const redisUrl = process.env.REDIS_URL ?? process.env.KV_URL;
     if (!redisUrl) {
-      console.warn('REDIS_URL is not configured; realtime events are local to one backend instance.');
+      console.warn(
+        'No REDIS_URL/KV_URL configured; realtime events are local to one backend instance.',
+      );
       return;
     }
 
-    this.redisPubClient = createClient({ url: redisUrl });
+    this.redisPubClient = createClient({
+      url: redisUrl,
+      socket: {
+        reconnectStrategy: (retries) => Math.min(retries * 250, 5000),
+      },
+    });
     this.redisSubClient = this.redisPubClient.duplicate();
 
-    await Promise.all([this.redisPubClient.connect(), this.redisSubClient.connect()]);
-    server.adapter(createAdapter(this.redisPubClient, this.redisSubClient));
-    console.log('Socket.IO Redis adapter enabled.');
+    this.redisPubClient.on('error', (error) => {
+      console.error('Socket.IO Redis pub client error:', error);
+    });
+    this.redisSubClient.on('error', (error) => {
+      console.error('Socket.IO Redis sub client error:', error);
+    });
+
+    try {
+      await Promise.all([this.redisPubClient.connect(), this.redisSubClient.connect()]);
+      server.adapter(createAdapter(this.redisPubClient, this.redisSubClient));
+      console.log('Socket.IO Redis adapter enabled.');
+    } catch (error) {
+      console.error(
+        'Failed to initialize Socket.IO Redis adapter; realtime events will remain local to this backend instance.',
+        error,
+      );
+
+      await Promise.allSettled([
+        this.redisPubClient.quit(),
+        this.redisSubClient.quit(),
+      ]);
+      this.redisPubClient = undefined;
+      this.redisSubClient = undefined;
+    }
   }
 
   // key: `${roomId}:${userId}` -> pending "treat as left" timer
