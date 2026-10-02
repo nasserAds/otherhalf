@@ -56,7 +56,13 @@ export function useRoomSocket(code: string | undefined) {
       setStatus('disconnected');
       console.error('socket connect error:', err.message);
     };
-    const onStateSync = (room: Room) => setRoom(room);
+    const onStateSync = (room: Room) => {
+      setRoom(room);
+      // Ask the game gateway for a point-in-time match snapshot after every
+      // room join/reconnect. It is harmless in the lobby and lets a player
+      // rebuild an active game after a browser refresh.
+      socket.emit(SocketEvents.GAME_STATE_SYNC_REQUEST);
+    };
     const onChatHistory = (
       entries: { id: string; userId: string; username: string; content: string }[],
     ) => setChat(entries);
