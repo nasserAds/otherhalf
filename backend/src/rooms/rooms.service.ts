@@ -50,16 +50,20 @@ export class RoomsService {
       include: this.roomInclude,
     });
     if (!room) throw new NotFoundException('room not found');
-    if (room.status !== RoomStatus.LOBBY) {
-      throw new BadRequestException('this room is not accepting new players right now');
-    }
 
-    // Look up membership without the roomInclude `leftAt: null` filter.
-    // A former host/player must be able to rejoin the same room without
-    // colliding with their retained unique roomPlayer row.
+    // Look up membership before checking the room status. A player who was
+    // already in this room must be allowed to reconnect even while a match
+    // is in progress; a brand-new player still cannot join an active match.
     const existingMembership = await this.prisma.roomPlayer.findUnique({
       where: { roomId_userId: { roomId: room.id, userId } },
     });
+
+    if (!existingMembership && room.status !== RoomStatus.LOBBY) {
+      throw new BadRequestException('this room is not accepting new players right now');
+    }
+
+    // A former host/player must be able to rejoin the same room without
+    // colliding with their retained unique roomPlayer row.
     if (existingMembership) {
       // Rejoin: bring an existing member back online rather than duplicating them.
       await this.prisma.roomPlayer.update({
