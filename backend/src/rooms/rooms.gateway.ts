@@ -27,7 +27,7 @@ class JoinRoomSocketDto {
 const RECONNECT_GRACE_MS = 30_000;
 
 @UseFilters(WsExceptionFilter)
-@WebSocketGateway({ cors: true })
+@WebSocketGateway({ cors: true, path: '/api/backend/socket.io' })
 export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server!: Server;
 
