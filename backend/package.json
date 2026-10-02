@@ -14,7 +14,8 @@
     "prisma:deploy": "if [ -d prisma/migrations ] && find prisma/migrations -type f -name '*.sql' | grep -q .; then prisma migrate deploy; else prisma db push --accept-data-loss=false; fi",
     "prisma:seed": "ts-node prisma/seed.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
