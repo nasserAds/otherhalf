@@ -39,9 +39,6 @@ export function useGameSocket() {
     const onVoteAck = () => setVoteAccepted(true);
     const onPredictAck = () => setPredictionAccepted(true);
     const onResult = (payload: WinnerAnnouncedPayload) => setResult(payload);
-    const onRoomStateSync = () => {
-      socket.emit(SocketEvents.GAME_STATE_SYNC_REQUEST);
-    };
 
     socket.on(SocketEvents.GAME_TOPIC_VOTE_STARTED, onTopicVoteStarted);
     socket.on(SocketEvents.GAME_TOPIC_VOTE_UPDATE, onTopicVoteUpdate);
@@ -54,7 +51,6 @@ export function useGameSocket() {
     socket.on(SocketEvents.VOTING_CAST_VOTE, onVoteAck);
     socket.on(SocketEvents.AUDIENCE_PREDICT, onPredictAck);
     socket.on(SocketEvents.RESULTS_WINNER_ANNOUNCED, onResult);
-    socket.on(SocketEvents.ROOM_STATE_SYNC, onRoomStateSync);
 
     return () => {
       socket.off(SocketEvents.GAME_TOPIC_VOTE_STARTED, onTopicVoteStarted);
@@ -68,7 +64,6 @@ export function useGameSocket() {
       socket.off(SocketEvents.VOTING_CAST_VOTE, onVoteAck);
       socket.off(SocketEvents.AUDIENCE_PREDICT, onPredictAck);
       socket.off(SocketEvents.RESULTS_WINNER_ANNOUNCED, onResult);
-      socket.off(SocketEvents.ROOM_STATE_SYNC, onRoomStateSync);
     };
   }, [
     accessToken,
