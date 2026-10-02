@@ -8,6 +8,17 @@ import { RegisterDto, LoginDto } from './dto';
 const SALT_ROUNDS = 10;
 const USERNAME_PATTERN = /^[\p{L}0-9_]+$/u;
 
+const PUBLIC_USER_SELECT = {
+  id: true,
+  username: true,
+  avatar: true,
+  xp: true,
+  coins: true,
+  wins: true,
+  losses: true,
+  profilePublic: true,
+} as const;
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,11 +26,6 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  // Registration issues a random "device secret" — the client persists it
-  // (e.g. localStorage) and it's the only credential needed to log back in
-  // later. This keeps the "just pick a username + avatar" UX from the brief
-  // while still preventing a stranger from typing someone else's username
-  // and taking over their account.
   async checkUsername(username: string) {
     const normalizedUsername = username.trim();
     const valid =
@@ -31,12 +37,18 @@ export class AuthService {
       return { available: false, valid };
     }
 
-    const existing = await this.prisma.user.findUnique({ where: { username: normalizedUsername } });
+    const existing = await this.prisma.user.findUnique({
+      where: { username: normalizedUsername },
+      select: { id: true },
+    });
     return { available: !existing, valid };
   }
 
   async register(dto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({ where: { username: dto.username } });
+    const existing = await this.prisma.user.findUnique({
+      where: { username: dto.username },
+      select: { id: true },
+    });
     if (existing) {
       throw new ConflictException('username is already taken');
     }
@@ -50,17 +62,24 @@ export class AuthService {
         avatar: dto.avatar,
         deviceSecretHash,
       },
+      select: PUBLIC_USER_SELECT,
     });
 
     return {
       accessToken: this.signToken(user.id, user.username),
-      deviceSecret, // returned once — the client must store this itself
+      deviceSecret,
       user: this.toPublicUser(user),
     };
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({ where: { username: dto.username } });
+    const user = await this.prisma.user.findUnique({
+      where: { username: dto.username },
+      select: {
+        ...PUBLIC_USER_SELECT,
+        deviceSecretHash: true,
+      },
+    });
     if (!user) {
       throw new UnauthorizedException('invalid username or device secret');
     }
@@ -80,7 +99,6 @@ export class AuthService {
     return this.jwtService.sign({ sub: userId, username });
   }
 
-  // Never leak deviceSecretHash back to a client.
   private toPublicUser(user: {
     id: string;
     username: string;
