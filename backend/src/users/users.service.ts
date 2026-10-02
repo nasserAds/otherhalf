@@ -56,6 +56,53 @@ export class UsersService {
     };
   }
 
+  async adjustPlayerCurrency(username: string, action: 'add' | 'remove', xp: number, coins: number) {
+    const normalizedUsername = username.trim();
+
+    if (xp === 0 && coins === 0) {
+      throw new ConflictException('xp or coins amount must be greater than zero');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { username: normalizedUsername },
+        select: { id: true, username: true, xp: true, coins: true },
+      });
+
+      if (!user) throw new NotFoundException('user not found');
+
+      const xpDelta = action === 'add' ? xp : -xp;
+      const coinDelta = action === 'add' ? coins : -coins;
+      const nextXp = user.xp + xpDelta;
+      const nextCoins = user.coins + coinDelta;
+
+      if (nextXp < 0 || nextCoins < 0) {
+        throw new ConflictException('cannot reduce XP or coins below zero');
+      }
+
+      const updated = await tx.user.update({
+        where: { id: user.id },
+        data: { xp: nextXp, coins: nextCoins },
+        select: { id: true, username: true, xp: true, coins: true },
+      });
+
+      await tx.xpTransaction.create({
+        data: {
+          userId: user.id,
+          type: 'OTHER',
+          xpAmount: xpDelta,
+          coinAmount: coinDelta,
+        },
+      });
+
+      return {
+        ...updated,
+        xpDelta,
+        coinDelta,
+      };
+    });
+  }
+
   async deleteUserByUsername(username: string) {
     const normalizedUsername = username.trim();
 
