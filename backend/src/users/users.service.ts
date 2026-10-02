@@ -28,6 +28,101 @@ export class UsersService {
     return user;
   }
 
+  async getPublicProfile(username: string, viewerUserId?: string) {
+    const normalizedUsername = username.trim();
+    const user = await this.prisma.user.findUnique({
+      where: { username: normalizedUsername },
+      select: {
+        id: true,
+        username: true,
+        avatar: true,
+        xp: true,
+        wins: true,
+        losses: true,
+        profilePublic: true,
+      },
+    });
+
+    if (!user) throw new NotFoundException('user not found');
+    if (!user.profilePublic && user.id !== viewerUserId) {
+      throw new NotFoundException('profile not found');
+    }
+
+    const matches = await this.prisma.match.findMany({
+      where: {
+        status: 'COMPLETED',
+        OR: [{ debaterAId: user.id }, { debaterBId: user.id }],
+      },
+      orderBy: { endedAt: 'desc' },
+      take: 50,
+      select: {
+        id: true,
+        topic: { select: { text: true } },
+        winnerId: true,
+        isDraw: true,
+        endedAt: true,
+        debaterAId: true,
+        debaterBId: true,
+      },
+    });
+
+    const votesReceived = await this.prisma.vote.count({ where: { votedForId: user.id } });
+    const totalDebates = matches.length;
+    const wins = user.wins;
+    const losses = user.losses;
+    const decidedDebates = wins + losses;
+    const winRate = decidedDebates > 0 ? Math.round((wins / decidedDebates) * 100) : 0;
+
+    let currentWinStreak = 0;
+    for (const match of matches) {
+      if (match.isDraw || match.winnerId === null) break;
+      if (match.winnerId === user.id) currentWinStreak += 1;
+      else break;
+    }
+
+    let longestWinStreak = 0;
+    let streak = 0;
+    for (const match of [...matches].reverse()) {
+      if (!match.isDraw && match.winnerId === user.id) {
+        streak += 1;
+        longestWinStreak = Math.max(longestWinStreak, streak);
+      } else {
+        streak = 0;
+      }
+    }
+
+    return {
+      id: user.id,
+      username: user.username,
+      avatar: user.avatar,
+      level: Math.floor(user.xp / 750) + 1,
+      xp: user.xp,
+      wins,
+      losses,
+      winRate,
+      totalDebates,
+      votesReceived,
+      currentWinStreak,
+      longestWinStreak,
+      profilePublic: user.profilePublic,
+      matchHistory: matches.map((match) => ({
+        id: match.id,
+        topic: match.topic.text,
+        result: match.isDraw ? 'DRAW' : match.winnerId === user.id ? 'WIN' : 'LOSS',
+        endedAt: match.endedAt,
+        votesReceived: 0,
+      })),
+    };
+  }
+
+  async updateProfilePrivacy(userId: string, profilePublic: boolean) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { profilePublic },
+      select: { profilePublic: true },
+    });
+  }
+
   async updateUsername(userId: string, dto: UpdateUsernameDto) {
     const username = dto.username.trim();
     const existing = await this.prisma.user.findFirst({
