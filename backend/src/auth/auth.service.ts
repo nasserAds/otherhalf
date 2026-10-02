@@ -89,8 +89,9 @@ export class AuthService {
     coins: number;
     wins: number;
     losses: number;
+    profilePublic?: boolean;
   }) {
-    const { id, username, avatar, xp, coins, wins, losses } = user;
-    return { id, username, avatar, xp, coins, wins, losses };
+    const { id, username, avatar, xp, coins, wins, losses, profilePublic = true } = user;
+    return { id, username, avatar, xp, coins, wins, losses, profilePublic };
   }
 }
