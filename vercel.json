@@ -1,17 +1,22 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
-    "otherhalf-backend": {
-      "root": "backend/",
-      "framework": "nestjs",
-      "buildCommand": "npm install && npx prisma generate && npm run build"
-    },
     "frontend": {
       "root": "frontend/",
       "framework": "nextjs"
+    },
+    "otherhalf-backend": {
+      "root": "backend/",
+      "framework": "nestjs"
     }
   },
   "rewrites": [
+    {
+      "source": "/api/backend",
+      "destination": {
+        "service": "otherhalf-backend"
+      }
+    },
     {
       "source": "/api/backend/(.*)",
       "destination": {
