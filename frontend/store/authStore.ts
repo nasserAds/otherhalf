@@ -46,6 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   updateSession: (user, accessToken) => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEYS.username, user.username);
+      window.sessionStorage.removeItem(MANUAL_LOGOUT_KEY);
     }
     set({ user, accessToken });
   },
