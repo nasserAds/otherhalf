@@ -77,7 +77,7 @@ export default function SettingsPage() {
     try {
       const result = await api.updateProfilePrivacy(accessToken, nextValue);
       setProfilePublic(result.profilePublic);
-      if (user) useAuthStore.getState().updateSession({ ...user, profilePublic: result.profilePublic });
+      if (user) updateSession({ ...user, profilePublic: result.profilePublic }, accessToken);
     } catch {
       setProfilePublic((current) => current);
     } finally {
