@@ -9,15 +9,18 @@ import { HttpExceptionFilter } from './common/filters';
 
 loadEnv();
 
-// Prisma expects DATABASE_URL. Support the common Neon/Vercel variable names
-// as fallbacks so a production deployment cannot silently start without DB config.
-if (!process.env.DATABASE_URL) {
-  process.env.DATABASE_URL =
-    process.env.NEON_DATABASE_URL ??
-    process.env.POSTGRES_URL ??
-    process.env.POSTGRES_PRISMA_URL ??
-    process.env.POSTGRES_URL_NON_POOLING ??
-    '';
+// Prefer the Neon/Vercel database variable when it exists. Prisma reads
+// DATABASE_URL from the schema, so normalize the production environment here.
+const databaseUrl =
+  process.env.NEON_DATABASE_URL ??
+  process.env.POSTGRES_PRISMA_URL ??
+  process.env.POSTGRES_URL_NON_POOLING ??
+  process.env.POSTGRES_URL ??
+  process.env.DATABASE_URL ??
+  '';
+
+if (databaseUrl) {
+  process.env.DATABASE_URL = databaseUrl;
 }
 
 async function bootstrap() {
@@ -89,4 +92,8 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`OtherHalf backend listening on ${httpsOptions ? 'https' : 'http'}://localhost:${port}`);
 }
-bootstrap();
+
+bootstrap().catch((error) => {
+  console.error('OtherHalf backend failed to start:', error);
+  process.exit(1);
+});
