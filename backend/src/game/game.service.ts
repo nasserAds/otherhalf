@@ -31,6 +31,9 @@ interface ActiveMatchState {
   roomId: string;
   currentRoundId: string | null;
   currentSpeakerId: string | null;
+  phase: MatchStatus;
+  durationSeconds: number;
+  remainingSeconds: number;
 }
 
 interface DebaterInfo {
@@ -192,7 +195,14 @@ export class GameService {
     });
 
     await this.roomsService.setRoomStatus(roomId, RoomStatus.IN_PROGRESS);
-    this.activeMatches.set(match.id, { roomId, currentRoundId: null, currentSpeakerId: null });
+    this.activeMatches.set(match.id, {
+      roomId,
+      currentRoundId: null,
+      currentSpeakerId: null,
+      phase: MatchStatus.PREPARING,
+      durationSeconds: DURATIONS.PREPARING,
+      remainingSeconds: DURATIONS.PREPARING,
+    });
 
     server.to(roomId).emit(SocketEvents.GAME_MATCH_STARTED, {
       matchId: match.id,
@@ -263,7 +273,14 @@ export class GameService {
       });
       roundId = round.id;
     }
-    this.activeMatches.set(matchId, { roomId, currentRoundId: roundId, currentSpeakerId: step.speakerId });
+    this.activeMatches.set(matchId, {
+      roomId,
+      currentRoundId: roundId,
+      currentSpeakerId: step.speakerId,
+      phase: step.phase,
+      durationSeconds: step.duration,
+      remainingSeconds: step.duration,
+    });
 
     server.to(roomId).emit(SocketEvents.GAME_PHASE_CHANGED, {
       matchId,
@@ -275,6 +292,10 @@ export class GameService {
     let remaining = step.duration;
     const interval = setInterval(() => {
       remaining -= 1;
+      const current = this.activeMatches.get(matchId);
+      if (current) {
+        current.remainingSeconds = remaining;
+      }
       server.to(roomId).emit(SocketEvents.GAME_TIMER_TICK, { matchId, remaining });
       if (remaining <= 0) {
         clearInterval(interval);
@@ -288,6 +309,74 @@ export class GameService {
       }
     }, 1000);
     this.timers.set(matchId, interval);
+  }
+
+  /**
+   * Replays the current game state to a player who reconnects after a
+   * browser refresh/close. The normal live events are broadcast only once,
+   * so a returning client needs a point-in-time snapshot to rebuild its UI.
+   */
+  async syncStateToClient(roomId: string, client: { emit: (event: string, payload: unknown) => void }) {
+    const pending = this.pendingTopicVotes.get(roomId);
+    if (pending) {
+      const counts: Record<string, number> = {};
+      for (const candidate of pending.candidates) counts[candidate.topicId] = 0;
+      for (const topicId of pending.votes.values()) {
+        counts[topicId] = (counts[topicId] ?? 0) + 1;
+      }
+
+      client.emit(SocketEvents.GAME_TOPIC_VOTE_STARTED, {
+        candidates: pending.candidates.map(({ topicId, text }) => ({ topicId, text })),
+        durationSeconds: TOPIC_VOTE_SECONDS,
+        debaterA: pending.debaterA,
+        debaterB: pending.debaterB,
+      });
+      client.emit(SocketEvents.GAME_TOPIC_VOTE_UPDATE, { counts });
+      client.emit(SocketEvents.GAME_TOPIC_VOTE_TICK, { remaining: pending.remaining });
+      return;
+    }
+
+    const active = [...this.activeMatches.entries()].find(([, state]) => state.roomId === roomId);
+    if (!active) return;
+
+    const [matchId, state] = active;
+    const match = await this.prisma.match.findUnique({
+      where: { id: matchId },
+      include: {
+        topic: true,
+        debaterA: true,
+        debaterB: true,
+      },
+    });
+
+    if (!match || match.status === MatchStatus.COMPLETED) return;
+
+    client.emit(SocketEvents.GAME_MATCH_STARTED, {
+      matchId: match.id,
+      topic: match.topic.text,
+      debaterA: {
+        userId: match.debaterAId,
+        username: match.debaterA.username,
+        stanceLabel: match.topic.stanceALabel,
+      },
+      debaterB: {
+        userId: match.debaterBId,
+        username: match.debaterB.username,
+        stanceLabel: match.topic.stanceBLabel,
+      },
+    });
+
+    client.emit(SocketEvents.GAME_PHASE_CHANGED, {
+      matchId: match.id,
+      phase: state.phase,
+      durationSeconds: state.durationSeconds,
+      speakerId: state.currentSpeakerId ?? undefined,
+    });
+
+    client.emit(SocketEvents.GAME_TIMER_TICK, {
+      matchId: match.id,
+      remaining: state.remainingSeconds,
+    });
   }
 
   private async finishMatch(matchId: string, roomId: string, server: Server) {
