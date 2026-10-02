@@ -6,6 +6,7 @@ interface AuthState {
   accessToken: string | null;
   hydrate: () => void;
   setSession: (user: User, accessToken: string, deviceSecret?: string) => void;
+  updateSession: (user: User, accessToken: string) => void;
   logout: () => void;
 }
 
@@ -36,6 +37,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (deviceSecret) {
         window.localStorage.setItem(STORAGE_KEYS.deviceSecret, deviceSecret);
       }
+    }
+    set({ user, accessToken });
+  },
+
+  updateSession: (user, accessToken) => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(STORAGE_KEYS.username, user.username);
     }
     set({ user, accessToken });
   },
