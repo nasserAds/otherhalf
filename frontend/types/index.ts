@@ -12,6 +12,7 @@ export interface User {
   avatar: Avatar;
   xp: number;
   coins: number;
+  profilePublic: boolean;
   wins: number;
   losses: number;
 }
