@@ -16,7 +16,6 @@ const PUBLIC_USER_SELECT = {
   coins: true,
   wins: true,
   losses: true,
-  profilePublic: true,
 } as const;
 
 @Injectable()
@@ -62,7 +61,9 @@ export class AuthService {
         avatar: dto.avatar,
         deviceSecretHash,
       },
-      select: PUBLIC_USER_SELECT,
+      select: {
+        ...PUBLIC_USER_SELECT,
+      },
     });
 
     return {
