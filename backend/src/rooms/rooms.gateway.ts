@@ -6,6 +6,7 @@ import {
   ConnectedSocket,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
 } from '@nestjs/websockets';
 import { IsString, Length } from 'class-validator';
 import { NotFoundException, UseFilters } from '@nestjs/common';
@@ -30,7 +31,7 @@ const RECONNECT_GRACE_MS = 30_000;
 
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({ cors: true, path: '/api/backend/socket.io' })
-export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, import('@nestjs/websockets').OnGatewayInit {
+export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   private redisPubClient?: RedisClientType;
   private redisSubClient?: RedisClientType;
   @WebSocketServer() server!: Server;
