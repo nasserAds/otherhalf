@@ -3,10 +3,11 @@ import { AuthModule } from '../auth/auth.module';
 import { RoomsService } from './rooms.service';
 import { RoomsController } from './rooms.controller';
 import { RoomsGateway } from './rooms.gateway';
+import { AdminRoomsController } from './admin-rooms.controller';
 
 @Module({
   imports: [AuthModule], // exports JwtModule, needed by RoomsGateway
-  controllers: [RoomsController],
+  controllers: [RoomsController, AdminRoomsController],
   providers: [RoomsService, RoomsGateway],
   exports: [RoomsService],
 })
