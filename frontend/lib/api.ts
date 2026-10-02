@@ -110,6 +110,19 @@ export const api = {
       headers: { 'x-admin-key': adminKey },
     }),
 
+  adjustAdminPlayerCurrency: (
+    adminKey: string,
+    body: { username: string; action: 'add' | 'remove'; xp: number; coins: number },
+  ) =>
+    request<{ id: string; username: string; xp: number; coins: number; xpDelta: number; coinDelta: number }>(
+      '/admin/users/currency',
+      {
+        method: 'PATCH',
+        headers: { 'x-admin-key': adminKey },
+        body: JSON.stringify(body),
+      },
+    ),
+
   closeAdminRoom: (adminKey: string, roomId: string) =>
     request<{ id: string; code: string }>(`/admin/rooms/${roomId}`, {
       method: 'DELETE',
