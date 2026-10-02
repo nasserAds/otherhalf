@@ -32,15 +32,34 @@ async function bootstrap() {
 
   // Mount the backend under the shared Vercel Services API path.\n  app.setGlobalPrefix('api/backend');\n\n  // Security headers\n  app.use(helmet());
 
-  const corsOrigins = config
-    .get<string>('CORS_ORIGIN', 'http://localhost:3000')
+  const configuredCorsOrigins = config
+    .get<string>('CORS_ORIGIN', '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  // CORS: only the configured frontend origins may call the API / connect sockets
+  // Vercel provides the current deployment URL at runtime. Include it so
+  // production/preview deployments work even when CORS_ORIGIN is omitted
+  // or still contains the local development URL.
+  const vercelOrigins = [process.env.VERCEL_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
+    .filter(Boolean)
+    .map((url) => `https://${url}`);
+
+  const corsOrigins = new Set([
+    'http://localhost:3000',
+    ...configuredCorsOrigins,
+    ...vercelOrigins,
+  ]);
+
+  // CORS: allow the configured/current Vercel frontend origins.
   app.enableCors({
-    origin: corsOrigins,
+    origin: (origin, callback) => {
+      if (!origin || corsOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
     credentials: true,
   });
 
