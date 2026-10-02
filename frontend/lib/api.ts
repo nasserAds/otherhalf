@@ -116,7 +116,7 @@ export const api = {
         debateMode: string;
         createdAt: string;
         host: { username: string };
-        players: string[];
+        players: Array<{ userId: string }>;
       }>;
     }>('/analytics/admin', {
       headers: { 'x-admin-key': adminKey },
