@@ -29,6 +29,7 @@ export const SocketEvents = {
   GAME_PHASE_CHANGED: 'game:phaseChanged',
   GAME_TIMER_TICK: 'game:timerTick',
   GAME_TURN_SUBMITTED: 'game:turnSubmitted',
+  GAME_STATE_SYNC_REQUEST: 'game:stateSyncRequest',
 
   // Topic vote — runs after debaters are picked and before the match
   // itself is created, so it's addressed by roomId, not matchId.
