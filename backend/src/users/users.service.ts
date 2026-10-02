@@ -49,13 +49,12 @@ export class UsersService {
       throw new NotFoundException('profile not found');
     }
 
-    const matches = await this.prisma.match.findMany({
+    const allMatches = await this.prisma.match.findMany({
       where: {
         status: 'COMPLETED',
         OR: [{ debaterAId: user.id }, { debaterBId: user.id }],
       },
       orderBy: { endedAt: 'desc' },
-      take: 50,
       select: {
         id: true,
         topic: { select: { text: true } },
@@ -68,14 +67,15 @@ export class UsersService {
     });
 
     const votesReceived = await this.prisma.vote.count({ where: { votedForId: user.id } });
-    const totalDebates = matches.length;
+    const totalDebates = allMatches.length;
+    const matches = allMatches.slice(0, 50);
     const wins = user.wins;
     const losses = user.losses;
     const decidedDebates = wins + losses;
     const winRate = decidedDebates > 0 ? Math.round((wins / decidedDebates) * 100) : 0;
 
     let currentWinStreak = 0;
-    for (const match of matches) {
+    for (const match of allMatches) {
       if (match.isDraw || match.winnerId === null) break;
       if (match.winnerId === user.id) currentWinStreak += 1;
       else break;
@@ -83,7 +83,7 @@ export class UsersService {
 
     let longestWinStreak = 0;
     let streak = 0;
-    for (const match of [...matches].reverse()) {
+    for (const match of [...allMatches].reverse()) {
       if (!match.isDraw && match.winnerId === user.id) {
         streak += 1;
         longestWinStreak = Math.max(longestWinStreak, streak);
