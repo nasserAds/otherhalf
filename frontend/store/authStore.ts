@@ -20,6 +20,7 @@ const LEGACY_STORAGE_KEYS = {
   username: 'jadal_username',
   deviceSecret: 'jadal_device_secret',
 };
+const MANUAL_LOGOUT_KEY = 'otherhalf_manual_logout';
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
@@ -37,6 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (deviceSecret) {
         window.localStorage.setItem(STORAGE_KEYS.deviceSecret, deviceSecret);
       }
+      window.sessionStorage.removeItem(MANUAL_LOGOUT_KEY);
     }
     set({ user, accessToken });
   },
@@ -54,6 +56,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   // password). Wiping it on logout would permanently lock the user out of
   // their own account from this device.
   logout: () => {
+    if (typeof window !== 'undefined') {
+      // Explicit logout only ends the current browser session. The persistent
+      // device credential remains so a normal browser close/reopen can restore
+      // the account automatically.
+      window.sessionStorage.setItem(MANUAL_LOGOUT_KEY, '1');
+    }
     set({ user: null, accessToken: null });
   },
 }));
