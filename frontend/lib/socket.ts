@@ -18,7 +18,7 @@ export function getSocket(accessToken: string): Socket {
     ...(isProxiedSocket
       ? { path: `${SOCKET_URL.replace(/\/$/, '')}/socket.io` }
       : {}),
-    transports: ['polling'],
+    transports: ['websocket'],
     upgrade: false,
     autoConnect: true,
     reconnection: true,
