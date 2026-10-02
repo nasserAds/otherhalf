@@ -23,13 +23,18 @@ export default function SettingsPage() {
   const [username, setUsername] = useState('');
   const [savingUsername, setSavingUsername] = useState(false);
   const [usernameMessage, setUsernameMessage] = useState('');
+  const [profilePublic, setProfilePublic] = useState(true);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
 
   useEffect(() => {
-    if (user) setUsername(user.username);
+    if (user) {
+      setUsername(user.username);
+      setProfilePublic(user.profilePublic ?? true);
+    }
   }, [user]);
 
   async function handleUsernameSave() {
@@ -63,6 +68,20 @@ export default function SettingsPage() {
       );
     } finally {
       setSavingUsername(false);
+    }
+  }
+
+  async function handlePrivacyChange(nextValue: boolean) {
+    if (!accessToken) return;
+    setSavingPrivacy(true);
+    try {
+      const result = await api.updateProfilePrivacy(accessToken, nextValue);
+      setProfilePublic(result.profilePublic);
+      if (user) useAuthStore.getState().updateSession({ ...user, profilePublic: result.profilePublic });
+    } catch {
+      setProfilePublic((current) => current);
+    } finally {
+      setSavingPrivacy(false);
     }
   }
 
@@ -153,6 +172,21 @@ export default function SettingsPage() {
             aria-valuetext={`${fxVolume}%`}
             className="w-full mt-2.5 accent-mint"
           />
+        </div>
+
+        <div className="py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <label htmlFor="profile-public" className="font-bold text-sm">الملف الشخصي العام</label>
+              <p className="mt-1 text-xs text-fg-500">إذا كان مفعّلاً، يستطيع اللاعبون مشاهدة إحصائياتك وسجل مبارياتك.</p>
+            </div>
+            <Switch
+              id="profile-public"
+              checked={profilePublic}
+              disabled={savingPrivacy}
+              onCheckedChange={handlePrivacyChange}
+            />
+          </div>
         </div>
 
         <div className="py-4 flex items-center justify-between">
