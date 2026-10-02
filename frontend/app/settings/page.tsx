@@ -83,7 +83,7 @@ export default function SettingsPage() {
       <div className="divide-y divide-line-800">
         <div className="py-4">
           <label htmlFor="username" className="font-bold text-sm">اسم المستخدم</label>
-          <div className="flex gap-2 mt-2">
+          <div className="mt-2 flex w-full flex-col gap-2 sm:flex-row sm:items-stretch">
             <input
               id="username"
               value={username}
@@ -93,10 +93,14 @@ export default function SettingsPage() {
               }}
               maxLength={20}
               dir="auto"
-              className="min-w-0 flex-1 rounded-xl border border-line-700 bg-bg-900 px-3 py-2 text-sm outline-none focus:border-mint"
+              className="min-w-0 w-full flex-1 rounded-xl border border-line-700 bg-bg-900 px-3 py-2.5 text-sm outline-none focus:border-mint sm:min-w-0"
               aria-describedby="username-message"
             />
-            <Button onClick={handleUsernameSave} disabled={savingUsername}>
+            <Button
+              onClick={handleUsernameSave}
+              disabled={savingUsername}
+              className="w-full shrink-0 sm:w-auto sm:min-w-[88px]"
+            >
               {savingUsername ? 'حفظ...' : 'حفظ'}
             </Button>
           </div>
