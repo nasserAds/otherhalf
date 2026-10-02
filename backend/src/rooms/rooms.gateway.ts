@@ -11,6 +11,8 @@ import { IsString, Length } from 'class-validator';
 import { NotFoundException, UseFilters } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { createClient, RedisClientType } from 'redis';
 import { RoomsService } from './rooms.service';
 import { SocketEvents } from '../common/socket-events';
 import { WsExceptionFilter } from '../common/filters';
@@ -28,8 +30,25 @@ const RECONNECT_GRACE_MS = 30_000;
 
 @UseFilters(WsExceptionFilter)
 @WebSocketGateway({ cors: true, path: '/api/backend/socket.io' })
-export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, import('@nestjs/websockets').OnGatewayInit {
+  private redisPubClient?: RedisClientType;
+  private redisSubClient?: RedisClientType;
   @WebSocketServer() server!: Server;
+
+  async afterInit(server: Server) {
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl) {
+      console.warn('REDIS_URL is not configured; realtime events are local to one backend instance.');
+      return;
+    }
+
+    this.redisPubClient = createClient({ url: redisUrl });
+    this.redisSubClient = this.redisPubClient.duplicate();
+
+    await Promise.all([this.redisPubClient.connect(), this.redisSubClient.connect()]);
+    server.adapter(createAdapter(this.redisPubClient, this.redisSubClient));
+    console.log('Socket.IO Redis adapter enabled.');
+  }
 
   // key: `${roomId}:${userId}` -> pending "treat as left" timer
   private disconnectTimers = new Map<string, NodeJS.Timeout>();
