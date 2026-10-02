@@ -181,10 +181,9 @@ export default function SettingsPage() {
               <p className="mt-1 text-xs text-fg-500">إذا كان مفعّلاً، يستطيع اللاعبون مشاهدة إحصائياتك وسجل مبارياتك.</p>
             </div>
             <Switch
-              id="profile-public"
               checked={profilePublic}
               disabled={savingPrivacy}
-              onCheckedChange={handlePrivacyChange}
+              onChange={handlePrivacyChange}
             />
           </div>
         </div>
