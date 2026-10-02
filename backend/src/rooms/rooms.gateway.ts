@@ -15,6 +15,7 @@ import { Server, Socket } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient, RedisClientType } from 'redis';
 import { RoomsService } from './rooms.service';
+import { GameService } from '../game/game.service';
 import { SocketEvents } from '../common/socket-events';
 import { WsExceptionFilter } from '../common/filters';
 
@@ -88,6 +89,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, O
   constructor(
     private readonly roomsService: RoomsService,
     private readonly jwtService: JwtService,
+    private readonly gameService: GameService,
   ) {}
 
   // Every socket must present a valid JWT at handshake time — sockets that
@@ -173,6 +175,8 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, O
     // Full state resync for everyone keeps all clients aligned after joins,
     // reconnects, and device changes without asking clients to re-join.
     this.server.to(room.id).emit(SocketEvents.ROOM_STATE_SYNC, room);
+    await this.gameService.syncStateToClient(room.id, client);
+
     const recentMessages = await this.roomsService.recentChatMessages(room.id);
     client.emit(
       SocketEvents.LOBBY_CHAT_HISTORY,
