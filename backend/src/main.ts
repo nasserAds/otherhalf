@@ -30,7 +30,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, httpsOptions ? { httpsOptions } : {});
   const config = app.get(ConfigService);
 
-  // Mount the backend under the shared Vercel Services API path.\n  app.setGlobalPrefix('api/backend');\n\n  // Security headers\n  app.use(helmet());
+  // Mount the backend under the shared Vercel Services API path.
+  app.setGlobalPrefix('api/backend');
+
+  // Security headers
+  app.use(helmet());
 
   const configuredCorsOrigins = config
     .get<string>('CORS_ORIGIN', '')
