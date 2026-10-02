@@ -81,6 +81,13 @@ export const api = {
   getRoom: (token: string, code: string) => request<Room>(`/rooms/${code}`, {}, token),
 
   listPublicRooms: (token: string) => request<PublicRoomSummary[]>('/rooms/public', {}, token),
+
+  deleteAdminUser: (adminKey: string, username: string) =>
+    request<{ username: string }>('/admin/users', {
+      method: 'DELETE',
+      headers: { 'x-admin-key': adminKey },
+      body: JSON.stringify({ username }),
+    }),
 };
 
 export { ApiError };
