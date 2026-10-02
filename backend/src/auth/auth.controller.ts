@@ -9,7 +9,16 @@ export class AuthController {
 
   @Get('username')
   checkUsername(@Query('username') username = '') {
-    return this.authService.checkUsername(username);
+    // Temporary runtime isolation: keep this endpoint independent of Prisma
+    // so we can determine whether Vercel's 500 is caused by the DB path or
+    // by Nest/Vercel runtime wiring.
+    const normalizedUsername = username.trim();
+    const valid =
+      normalizedUsername.length >= 3 &&
+      normalizedUsername.length <= 20 &&
+      /^[\p{L}0-9_]+$/u.test(normalizedUsername);
+
+    return { available: valid, valid };
   }
 
   @Post('register')
