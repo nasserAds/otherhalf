@@ -39,7 +39,9 @@ export default function AdminDashboardPage() {
     if (!stats || !adminKey.trim()) return;
     const interval = window.setInterval(() => { void load(); }, 10_000);
     return () => window.clearInterval(interval);
-  }, [stats, adminKey]);
+    // Keep the polling interval stable while the dashboard is open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Boolean(stats), adminKey]);
 
   return (
     <PageTransition>
