@@ -14,6 +14,7 @@ import { VotingModule } from './voting/voting.module';
 import { XpModule } from './xp/xp.module';
 import { VoiceModule } from './voice/voice.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     VoiceModule,
     AnalyticsModule,
   ],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,
