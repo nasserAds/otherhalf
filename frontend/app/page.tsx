@@ -3,31 +3,19 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { api } from '@/lib/api';
-import { getStoredCredentials } from '@/store/authStore';
 import { useAuthStore } from '@/store/authStore';
 
 export default function SplashPage() {
   const router = useRouter();
-  const setSession = useAuthStore((s) => s.setSession);
+  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      const stored = getStoredCredentials();
-      if (!stored) {
-        router.replace('/login');
-        return;
-      }
-      try {
-        const { accessToken, user } = await api.login(stored.username, stored.deviceSecret);
-        setSession(user, accessToken);
-        router.replace('/menu');
-      } catch {
-        router.replace('/login');
-      }
-    }, 1100);
-    return () => clearTimeout(timer);
-  }, [router, setSession]);
+    if (user) {
+      router.replace('/menu');
+    } else {
+      router.replace('/login');
+    }
+  }, [router, user]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] gap-6">
