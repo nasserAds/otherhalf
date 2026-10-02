@@ -9,6 +9,17 @@ import { HttpExceptionFilter } from './common/filters';
 
 loadEnv();
 
+// Prisma expects DATABASE_URL. Support the common Neon/Vercel variable names
+// as fallbacks so a production deployment cannot silently start without DB config.
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL =
+    process.env.NEON_DATABASE_URL ??
+    process.env.POSTGRES_URL ??
+    process.env.POSTGRES_PRISMA_URL ??
+    process.env.POSTGRES_URL_NON_POOLING ??
+    '';
+}
+
 async function bootstrap() {
   const keyFile = process.env.HTTPS_KEY_FILE;
   const certFile = process.env.HTTPS_CERT_FILE;
@@ -27,13 +38,14 @@ async function bootstrap() {
         }
       : undefined;
 
+  console.log(
+    `Database configuration present: ${Boolean(process.env.DATABASE_URL)}`,
+  );
+
   const app = await NestFactory.create(AppModule, httpsOptions ? { httpsOptions } : {});
   const config = app.get(ConfigService);
 
-  // Mount the backend under the shared Vercel Services API path.
   app.setGlobalPrefix('api/backend');
-
-  // Security headers
   app.use(helmet());
 
   const configuredCorsOrigins = config
@@ -42,9 +54,6 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  // Vercel provides the current deployment URL at runtime. Include it so
-  // production/preview deployments work even when CORS_ORIGIN is omitted
-  // or still contains the local development URL.
   const vercelOrigins = [process.env.VERCEL_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
     .filter(Boolean)
     .map((url) => `https://${url}`);
@@ -55,7 +64,6 @@ async function bootstrap() {
     ...vercelOrigins,
   ]);
 
-  // CORS: allow the configured/current Vercel frontend origins.
   app.enableCors({
     origin: (origin, callback) => {
       if (!origin || corsOrigins.has(origin)) {
@@ -67,8 +75,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Strip unknown properties and reject requests with extra fields —
-  // first line of defense against malformed/malicious payloads.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -77,7 +83,6 @@ async function bootstrap() {
     }),
   );
 
-  // Consistent error response shape across the whole REST API
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const port = config.get<number>('PORT', 4000);
