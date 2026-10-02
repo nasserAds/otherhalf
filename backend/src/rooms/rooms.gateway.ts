@@ -96,6 +96,11 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect, O
   // the app (see voice/voice.gateway.ts) can address this specific
   // connection directly via server.to(userId) without RoomsGateway having
   // to know anything about them.
+  notifyRoomClosed(roomId: string) {
+    this.server.to(roomId).emit(SocketEvents.ROOM_CLOSED, { roomId });
+    this.server.in(roomId).socketsLeave(roomId);
+  }
+
   handleConnection(client: Socket) {
     const token = client.handshake.auth?.token as string | undefined;
     if (!token) {
