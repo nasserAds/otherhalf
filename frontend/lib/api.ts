@@ -64,6 +64,12 @@ export const api = {
 
   me: (token: string) => request<User>('/users/me', {}, token),
 
+  updateUsername: (token: string, username: string) =>
+    request<{ accessToken: string; user: User }>('/users/me/username', {
+      method: 'PATCH',
+      body: JSON.stringify({ username }),
+    }, token),
+
   createRoom: (
     token: string,
     body: { maxPlayers: number; debateMode: string; visibility: string },
