@@ -121,6 +121,7 @@ model User {
   // Denormalized stat counters (see design note 1 above)
   xp     Int @default(0)
   coins  Int @default(0)
+  profilePublic Boolean @default(true)
   wins   Int @default(0)
   losses Int @default(0)
 
