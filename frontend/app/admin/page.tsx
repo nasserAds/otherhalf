@@ -15,6 +15,11 @@ export default function AdminDashboardPage() {
   const [closing, setClosing] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [savedSession, setSavedSession] = useState(false);
+  const [playerUsername, setPlayerUsername] = useState('');
+  const [currencyAction, setCurrencyAction] = useState<'add' | 'remove'>('add');
+  const [xpAmount, setXpAmount] = useState('0');
+  const [coinAmount, setCoinAmount] = useState('0');
+  const [currencyLoading, setCurrencyLoading] = useState(false);
 
   useEffect(() => {
     const saved = window.sessionStorage.getItem(ADMIN_KEY_STORAGE);
@@ -49,6 +54,44 @@ export default function AdminDashboardPage() {
     setStats(null);
     setSavedSession(false);
     setMessage('تم تسجيل الخروج من لوحة الإدارة.');
+  }
+
+  async function adjustPlayerCurrency() {
+    const username = playerUsername.trim();
+    const xp = Number(xpAmount);
+    const coins = Number(coinAmount);
+
+    if (!username) {
+      setMessage('أدخل Username أولاً.');
+      return;
+    }
+    if (!Number.isInteger(xp) || !Number.isInteger(coins) || xp < 0 || coins < 0 || (xp === 0 && coins === 0)) {
+      setMessage('أدخل XP أو Coins بقيمة صحيحة أكبر من صفر.');
+      return;
+    }
+
+    setCurrencyLoading(true);
+    setMessage('');
+    try {
+      const result = await api.adjustAdminPlayerCurrency(adminKey.trim(), {
+        username,
+        action: currencyAction,
+        xp,
+        coins,
+      });
+      setMessage(
+        `${currencyAction === 'add' ? 'تمت الإضافة' : 'تمت الإزالة'} لـ ${result.username}: XP ${result.xp} · Coins ${result.coins}`,
+      );
+      setXpAmount('0');
+      setCoinAmount('0');
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) setMessage('Admin Key غير صحيح.');
+      else if (error instanceof ApiError && error.status === 404) setMessage('اللاعب غير موجود.');
+      else if (error instanceof ApiError && error.status === 409) setMessage(error.message);
+      else setMessage('تعذر تعديل XP وCoins.');
+    } finally {
+      setCurrencyLoading(false);
+    }
   }
 
   async function closeRoom(roomId: string, code: string) {
@@ -104,6 +147,55 @@ export default function AdminDashboardPage() {
             {([['زيارات اليوم', stats.traffic.todayVisits], ['زوار فريدون اليوم', stats.traffic.todayUniqueVisitors], ['متصلون الآن', stats.traffic.onlineVisitors], ['إجمالي الزيارات', stats.traffic.totalVisits], ['المستخدمون', stats.users], ['المباريات الكلية', stats.totalMatches], ['مباريات الآن', stats.activeGames], ['الغرف المفتوحة', stats.rooms.filter((r) => r.status !== 'CLOSED').length]] as [string, number][]).map(([label, value]) => (
               <div key={label} className="rounded-2xl border border-line-800 bg-ink-900 p-4"><div className="text-xs font-bold text-fg-500">{label}</div><div className="mt-2 text-2xl font-black text-mint">{value.toLocaleString('en-US')}</div></div>
             ))}
+          </div>
+
+
+          <div className="mt-6 rounded-2xl border border-line-800 bg-ink-900 p-4">
+            <div className="mb-4">
+              <h2 className="font-black">إدارة XP و Coins</h2>
+              <p className="mt-1 text-xs text-fg-500">ابحث بالـ Username وأضف أو اطرح XP وCoins. لن تنخفض القيم عن صفر.</p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <input
+                value={playerUsername}
+                onChange={(e) => setPlayerUsername(e.target.value)}
+                placeholder="Username"
+                className="rounded-xl border border-line-700 bg-bg-900 px-3 py-2.5 text-sm outline-none focus:border-mint"
+              />
+              <select
+                value={currencyAction}
+                onChange={(e) => setCurrencyAction(e.target.value as 'add' | 'remove')}
+                className="rounded-xl border border-line-700 bg-bg-900 px-3 py-2.5 text-sm outline-none focus:border-mint"
+              >
+                <option value="add">إضافة</option>
+                <option value="remove">إزالة</option>
+              </select>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={xpAmount}
+                onChange={(e) => setXpAmount(e.target.value)}
+                placeholder="XP amount"
+                className="rounded-xl border border-line-700 bg-bg-900 px-3 py-2.5 text-sm outline-none focus:border-mint"
+              />
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={coinAmount}
+                onChange={(e) => setCoinAmount(e.target.value)}
+                placeholder="Coins amount"
+                className="rounded-xl border border-line-700 bg-bg-900 px-3 py-2.5 text-sm outline-none focus:border-mint"
+              />
+            </div>
+            <Button
+              onClick={() => void adjustPlayerCurrency()}
+              disabled={currencyLoading}
+              className="mt-3 w-full sm:w-auto"
+            >
+              {currencyLoading ? 'جاري الحفظ...' : currencyAction === 'add' ? 'إضافة XP / Coins' : 'إزالة XP / Coins'}
+            </Button>
           </div>
 
           <div className="mt-6 rounded-2xl border border-line-800 bg-ink-900 p-4">
