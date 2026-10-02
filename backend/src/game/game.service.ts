@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { MatchStatus, RoomStatus, RoundType } from '@prisma/client';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { PrismaService } from '../prisma/prisma.service';
 import { RoomsService } from '../rooms/rooms.service';
 import { TopicsService } from '../topics/topics.service';
@@ -316,7 +316,7 @@ export class GameService {
    * browser refresh/close. The normal live events are broadcast only once,
    * so a returning client needs a point-in-time snapshot to rebuild its UI.
    */
-  async syncStateToClient(roomId: string, client: { emit: (event: string, payload: unknown) => void }) {
+  async syncStateToClient(roomId: string, client: Socket) {
     const pending = this.pendingTopicVotes.get(roomId);
     if (pending) {
       const counts: Record<string, number> = {};
