@@ -112,7 +112,7 @@ export default function AdminDashboardPage() {
   }, [Boolean(stats), adminKey]);
 
   return (
-    <PageTransition>
+    <PageTransition wide>
       <div className="mb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
