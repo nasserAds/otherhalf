@@ -7,7 +7,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 
 export function Card({ className, children, ...rest }: CardProps) {
   return (
-    <div className={clsx('bg-ink-900/90 border border-line-800 rounded-lg p-[18px] shadow-[0_14px_40px_rgba(66,86,73,0.08)]', className)} {...rest}>
+    <div className={clsx('bg-ink-900 border-2 border-[#29263a] rounded-[9px] p-[18px] shadow-[3px_4px_0_rgba(41,38,58,0.92)]', className)} {...rest}>
       {children}
     </div>
   );
