@@ -334,7 +334,7 @@ export default function GamesHubPage() {
                       initial={{ opacity: 0, y: -5, scale: 0.98 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -5, scale: 0.98 }}
-                      className="absolute left-0 top-14 z-50 w-[min(310px,calc(100vw-32px))] rounded-[8px] border-2 border-[#29263a] bg-[#fffdf8] p-4 shadow-[4px_5px_0_#29263a]"
+                      className="absolute right-0 top-14 z-50 w-[min(310px,calc(100vw-32px))] rounded-[8px] border-2 border-[#29263a] bg-[#fffdf8] p-4 shadow-[4px_5px_0_#29263a]"
                     >
                       <div className="flex items-center gap-3">
                         <AvatarBadge avatar={user.avatar} size="md" />
@@ -389,7 +389,7 @@ export default function GamesHubPage() {
                       initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
-                      className="absolute left-0 top-14 z-50 w-[210px] rounded-[8px] border-2 border-[#29263a] bg-[#fffdf8] p-2 shadow-[4px_5px_0_#29263a]"
+                      className="absolute right-0 top-14 z-50 w-[210px] rounded-[8px] border-2 border-[#29263a] bg-[#fffdf8] p-2 shadow-[4px_5px_0_#29263a]"
                     >
                       <Link href="/menu" onClick={() => setMenuOpen(false)} className="block rounded-[5px] bg-[#eee8ff] px-3 py-2.5 text-xs font-black">
                         🎮 الألعاب
