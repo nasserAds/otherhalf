@@ -88,7 +88,7 @@ export default function LobbyPage() {
   // relying on the ~30s disconnect grace period to eventually notice.
   function handleBack() {
     leaveRoom();
-    router.push('/games/otherhalf');
+    router.push('/games/debate-game');
   }
 
   function handleKick(userId: string) {
@@ -98,7 +98,7 @@ export default function LobbyPage() {
 
   if (!room) {
     return (
-      <PageTransition>
+      <PageTransition wide>
         <div className="flex-1 flex items-center justify-center">
           <Spinner label="جارِ الاتصال بالغرفة..." />
         </div>
