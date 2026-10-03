@@ -32,7 +32,7 @@ export default function PlayerProfilePage() {
   }, [accessToken, params.username]);
 
   if (error) {
-    return <PageTransition><div className="py-16 text-center"><h1 className="text-xl font-black">{error}</h1><Button variant="ghost" className="mt-5" onClick={() => router.back()}>رجوع</Button></div></PageTransition>;
+    return <PageTransition wide><div className="py-16 text-center"><h1 className="text-xl font-black">{error}</h1><Button variant="ghost" className="mt-5" onClick={() => router.back()}>رجوع</Button></div></PageTransition>;
   }
 
   if (!profile) return <PageTransition><div className="py-16 text-center text-sm text-fg-500">جاري تحميل الملف...</div></PageTransition>;
