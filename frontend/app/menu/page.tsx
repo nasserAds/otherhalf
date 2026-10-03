@@ -43,7 +43,7 @@ export default function GamesHubPage() {
                 <AvatarBadge avatar={user.avatar} size="md" />
                 <div className="min-w-0">
                   <div className="truncate font-black">{user.username}</div>
-                  <div className="text-xs text-fg-500">Level {user.level} · {user.xp} XP</div>
+                  <div className="text-xs text-fg-500">{user.xp} XP · {user.coins} coins</div>
                 </div>
               </div>
               <div className="mt-3 grid gap-2">
