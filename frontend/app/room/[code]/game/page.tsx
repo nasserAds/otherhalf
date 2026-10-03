@@ -127,7 +127,7 @@ export default function GamePage() {
   const viewKey = topicVote ? 'topicVote' : phase === 'VOTING' ? 'voting' : phase === 'COMPLETED' ? 'winner' : 'game';
 
   return (
-    <PageTransition>
+    <PageTransition wide>
       <RemoteAudioPlayers streams={remoteStreams} audioEnabled={audioEnabled} mutedUsers={mutedUsers} />
       <ConnectionBanner />
       <ReactionOverlay reaction={lastReaction} />
