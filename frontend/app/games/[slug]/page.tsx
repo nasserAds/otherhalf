@@ -12,6 +12,10 @@ export default function GameLandingPage() {
   const game = getGame(params.slug);
 
   useEffect(() => {
+    if (params.slug === 'otherhalf') {
+      router.replace('/games/debate-game');
+      return;
+    }
     if (!game || game.comingSoon) router.replace('/menu');
   }, [game, router]);
 
@@ -21,23 +25,23 @@ export default function GameLandingPage() {
   // Create/Join Room screen. As more games are added, branch on
   // `params.slug` here to render each game's own landing content instead
   // of growing this file into a single giant switch.
-  if (params.slug === 'otherhalf') return <OtherHalfMenu />;
+  if (params.slug === 'debate-game') return <DebateGameMenu />;
 
   return null;
 }
 
-function OtherHalfMenu() {
+function DebateGameMenu() {
   return (
     <PageTransition>
-      <div className="flex items-center gap-3 mb-8">
+      <div className="mb-8 flex items-center gap-3 rounded-[7px] border-b-2 border-[#29263a]/15 pb-4">
         <Link href="/menu" className="text-fg-100"><BackIcon /></Link>
         <div>
-          <h1 className="text-xl font-extrabold leading-tight">OtherHalf</h1>
+          <h1 className="text-xl font-extrabold leading-tight">Debate Game</h1>
           <p className="text-xs text-fg-500">مناظرات جماعية مباشرة</p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3.5 my-auto">
+      <div className="my-auto flex flex-col gap-4">
         <MenuButton href="/room/create" tone="g" title="إنشاء غرفة" subtitle="ابدأ غرفة جديدة وادعُ أصدقاءك" icon={<PlusIcon />} />
         <MenuButton href="/room/join" tone="a" title="الانضمام لغرفة" subtitle="أدخل الكود وابدأ اللعب" icon={<UsersIcon />} />
       </div>
@@ -62,7 +66,7 @@ function MenuButton({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3.5 p-5 bg-ink-900 border border-line-800 rounded-lg hover:border-mint hover:-translate-y-0.5 transition-all"
+      className="flex items-center gap-3.5 rounded-[9px] border-2 border-[#29263a] bg-ink-900 p-5 shadow-[3px_4px_0_#29263a] transition-all hover:-translate-y-1 hover:shadow-[5px_7px_0_#29263a]"
     >
       <div className={`w-[46px] h-[46px] rounded-md flex items-center justify-center flex-none ${toneClass}`}>{icon}</div>
       <div>
