@@ -1,4 +1,4 @@
-export type Avatar = 'LION' | 'TIGER' | 'FOX' | 'PANDA' | 'OWL' | 'WOLF';
+export type Avatar = 'LION' | 'TIGER' | 'FOX' | 'PANDA' | 'OWL' | 'WOLF' | 'AVATAR_7' | 'AVATAR_8' | 'AVATAR_9' | 'AVATAR_10';
 
 export type DebateMode = 'TEXT' | 'VOICE' | 'TEXT_VOICE';
 export type RoomVisibility = 'PUBLIC' | 'PRIVATE';

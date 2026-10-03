@@ -61,14 +61,15 @@ export default function AvatarSelectionPage() {
             type="button"
             role="radio"
             aria-checked={selected === a.key}
-            aria-label={a.key}
+            aria-label={a.name}
             onClick={() => {
               setSelected(a.key);
               sound.click();
             }}
-            className="flex items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
+            className="flex flex-col items-center gap-2 rounded-xl px-1 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint focus-visible:ring-offset-2 focus-visible:ring-offset-ink-950"
           >
             <AvatarBadge avatar={a.key} size="lg" selected={selected === a.key} />
+            <span className="text-sm font-bold text-fg-300">{a.name}</span>
           </button>
         ))}
       </div>

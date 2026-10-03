@@ -50,6 +50,10 @@ enum Avatar {
   PANDA
   OWL
   WOLF
+  AVATAR_7
+  AVATAR_8
+  AVATAR_9
+  AVATAR_10
 }
 
 enum RoomVisibility {
