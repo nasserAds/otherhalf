@@ -47,7 +47,7 @@ export default function AdminUsersPage() {
   }
 
   return (
-    <PageTransition>
+    <PageTransition wide>
       <div className="mb-6">
         <h1 className="text-xl font-extrabold">Admin — حذف مستخدم</h1>
         <p className="mt-1 text-sm text-fg-500">
