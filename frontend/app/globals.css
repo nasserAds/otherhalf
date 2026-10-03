@@ -105,8 +105,30 @@ button {
   box-shadow: 2px 3px 0 #29263a !important;
 }
 
+.border-line-800 { border-width: 2px !important; }
 .rounded-md { border-radius: 7px !important; }
 .rounded-lg { border-radius: 9px !important; }
+.rounded-xl { border-radius: 8px !important; }
+.rounded-2xl { border-radius: 9px !important; }
+.rounded-3xl { border-radius: 10px !important; }
+
+.paper-page .bg-ink-900.border-line-800 {
+  box-shadow: 2px 3px 0 rgba(41, 38, 58, 0.92);
+}
+
+.paper-page input,
+.paper-page select,
+.paper-page textarea {
+  background-color: #fffdf8;
+}
+
+.paper-page input:focus,
+.paper-page select:focus,
+.paper-page textarea:focus {
+  outline: none;
+  border-color: #6f9f86;
+  box-shadow: 2px 3px 0 #29263a;
+}
 
 ::-webkit-scrollbar {
   width: 8px;
