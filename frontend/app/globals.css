@@ -8,36 +8,111 @@ html {
 
 body {
   background:
-    radial-gradient(circle at 18% -10%, rgba(167, 232, 199, 0.75) 0%, rgba(247, 250, 246, 0) 38%),
-    radial-gradient(circle at 82% 0%, rgba(244, 182, 61, 0.24) 0%, rgba(247, 250, 246, 0) 32%),
-    linear-gradient(180deg, #fbfdf9 0%, #eef6f0 100%);
-  color: #172033;
+    radial-gradient(circle at 8% 4%, rgba(216, 199, 240, 0.38) 0%, rgba(216, 199, 240, 0) 28%),
+    radial-gradient(circle at 92% 0%, rgba(246, 214, 157, 0.28) 0%, rgba(246, 214, 157, 0) 25%),
+    linear-gradient(180deg, #fbfaf5 0%, #f3efe5 100%);
+  color: #29263a;
   min-height: 100vh;
 }
 
-/* Big, game-like tap targets everywhere by default */
 button {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Utility used by every big pill button for the press-down feel */
 .btn-press {
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
+
 .btn-press:active {
-  transform: scale(0.96);
+  transform: translateY(2px);
 }
 
-/* Numeric/timer displays read left-to-right even inside an RTL page */
 .ltr-nums {
   direction: ltr;
   unicode-bidi: isolate;
 }
 
+.paper-page {
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(185, 228, 208, 0.24) 0%, rgba(185, 228, 208, 0) 22%),
+    radial-gradient(circle at 88% 2%, rgba(246, 214, 157, 0.18) 0%, rgba(246, 214, 157, 0) 24%),
+    #f8f5ee;
+  color: #29263a;
+}
+
+.paper-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.25;
+  background-image:
+    linear-gradient(rgba(41, 38, 58, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(41, 38, 58, 0.018) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+
+.paper-card {
+  border: 2px solid #29263a;
+  border-radius: 9px;
+  background: #fffdf8;
+  box-shadow: 3px 5px 0 #29263a;
+}
+
+.paper-input {
+  border: 2px solid rgba(41, 38, 58, 0.55);
+  background: #fffdf8;
+  border-radius: 7px;
+  box-shadow: 2px 3px 0 rgba(41, 38, 58, 0.9);
+}
+
+.paper-input:focus {
+  outline: none;
+  border-color: #6f9f86;
+  box-shadow: 3px 4px 0 #29263a;
+}
+
+/* Shared semantic utilities: old pages inherit the same paper palette. */
+.bg-ink-950 { background-color: #f8f5ee !important; }
+.bg-ink-900 { background-color: #fffdf8 !important; }
+.bg-ink-800 { background-color: #eee8dc !important; }
+.bg-ink-700 { background-color: #ddd3c3 !important; }
+.bg-bg-900 { background-color: #fbf8f1 !important; }
+
+.border-line-800 { border-color: #29263a !important; }
+.border-line-700 { border-color: #bdb2a1 !important; }
+
+.text-fg-100 { color: #29263a !important; }
+.text-fg-500 { color: #777182 !important; }
+.text-fg-600 { color: #9a94a2 !important; }
+
+.bg-mint { background-color: #6f9f86 !important; }
+.text-mint { color: #5d8e75 !important; }
+.border-mint { border-color: #6f9f86 !important; }
+
+.bg-amber { background-color: #e0ae57 !important; }
+.text-amber { color: #7c5a25 !important; }
+.border-amber { border-color: #e0ae57 !important; }
+
+.shadow-mint {
+  box-shadow: 2px 3px 0 #29263a !important;
+}
+.shadow-amber {
+  box-shadow: 2px 3px 0 #29263a !important;
+}
+
+.rounded-md { border-radius: 7px !important; }
+.rounded-lg { border-radius: 9px !important; }
+
 ::-webkit-scrollbar {
   width: 8px;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #cbd9d2;
+  background: #cfc6b6;
   border-radius: 999px;
 }
