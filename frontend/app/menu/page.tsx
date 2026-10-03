@@ -25,11 +25,17 @@ const folderStyles = [
   { body: 'from-[#f4d7a3] to-[#edbd73]', tab: '#edbd73' },
 ];
 
+function normalizeGameSlug(slug: string) {
+  return slug === 'otherhalf' ? 'debate-game' : slug;
+}
+
 function readStoredList(key: string): string[] {
   if (typeof window === 'undefined') return [];
   try {
     const value = JSON.parse(window.localStorage.getItem(key) ?? '[]');
-    return Array.isArray(value) && value.every((item) => typeof item === 'string') ? value : [];
+    return Array.isArray(value) && value.every((item) => typeof item === 'string')
+      ? value.map(normalizeGameSlug)
+      : [];
   } catch {
     return [];
   }
@@ -113,7 +119,7 @@ function GameFolder({
             className="flex min-h-[230px] flex-col items-center justify-center text-center outline-none"
           >
             <div className="grid h-24 w-24 place-items-center rounded-[12px] border-2 border-[#29263a] bg-white/75 text-[#29263a] shadow-[2px_3px_0_rgba(41,38,58,.28)]">
-              {game.slug === 'otherhalf' ? (
+              {game.slug === 'debate-game' ? (
                 <DebateMark />
               ) : (
                 <span className="text-4xl font-black">{game.title.slice(0, 1)}</span>
