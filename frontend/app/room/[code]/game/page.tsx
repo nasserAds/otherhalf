@@ -110,7 +110,7 @@ export default function GamePage() {
 
   if (!topicVote && (!matchId || !debaterAData || !debaterBData)) {
     return (
-      <PageTransition>
+      <PageTransition wide>
         <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
           <p className="text-fg-500 text-sm">لا توجد جولة نشطة حاليًا</p>
           <Button variant="ghost" onClick={goToLobby}>
