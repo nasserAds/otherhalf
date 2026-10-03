@@ -46,7 +46,7 @@ export default function CreateRoomPage() {
   return (
     <PageTransition>
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/games/otherhalf" className="text-fg-100"><BackIcon /></Link>
+        <Link href="/games/debate-game" className="text-fg-100"><BackIcon /></Link>
         <h1 className="text-xl font-extrabold">إنشاء غرفة</h1>
       </div>
 
